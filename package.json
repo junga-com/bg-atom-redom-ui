@@ -1,0 +1,26 @@
+{
+  "name": "bg-atom-redom-ui",
+  "version": "1.0.0",
+  "description": "REDOM components for the Atom style guide",
+  "main": "bg-atom-redom-ui.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "bg-atom-redom-ui"
+  },
+  "keywords": [
+    "atom",
+    "redom",
+    "ui",
+    "components",
+    "style",
+    "guide"
+  ],
+  "author": "Robert E. Griffith <npmjs@junga.com>",
+  "license": "MIT",
+  "dependencies": {
+    "redom": "^3.24.2"
+  }
+}

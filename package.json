@@ -21,6 +21,8 @@
   "author": "Robert E. Griffith <npmjs@junga.com>",
   "license": "MIT",
   "dependencies": {
+    "lodash.clone": "^4.5.0",
+    "lodash.clonedeep": "^4.5.0",
     "redom": "^3.24.2"
   }
 }

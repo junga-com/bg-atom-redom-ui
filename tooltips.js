@@ -13,6 +13,7 @@ import { AssertError } from './errorHandling'
 // </div>
 
 // Tooltip.
+// For normal atom tooltips, this is not needed. use atom.tooltips.add(this.el ... instead
 // Params:
 //     msg      : The text displayed in the tooltip
 //     options  : an object with various optional keys

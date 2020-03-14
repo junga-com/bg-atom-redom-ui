@@ -1,25 +1,26 @@
 {
   "name": "bg-atom-redom-ui",
-  "version": "1.0.0",
-  "description": "REDOM components for the Atom style guide",
   "main": "bg-atom-redom-ui.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "bg-atom-redom-ui"
-  },
+  "version": "1.0.0",
+  "description": "Atom plugin UI Component library using REDOM and compliant with the Atom style guide",
   "keywords": [
     "atom",
     "redom",
     "ui",
     "components",
-    "style",
-    "guide"
+    "style-guide",
+    "bg"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/junga-com/bg-atom-redom-ui.git"
+  },
   "author": "Robert E. Griffith <npmjs@junga.com>",
   "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/junga-com/bg-atom-redom-ui/issues"
+  },
+  "homepage": "https://github.com/junga-com/bg-atom-redom-ui#readme",
   "dependencies": {
     "lodash.clone": "^4.5.0",
     "lodash.clonedeep": "^4.5.0",

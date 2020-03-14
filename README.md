@@ -1,6 +1,46 @@
 # bg-atom-redom-ui
 
-This is a node package that can be used in atom packages to aid in creating Atom style guide compliant UI features.
+This is an NPM package that provides a Components library over the REDOM library that are compliant with the Atom style guide.
+
+This is a work in progress. The idea is to explore programming in JS/DOM in more of a programming style than markup but still have good css separation.
+
+Example...
+
+	export class BGFontSizeControlView  {
+	constructor() {
+		this.panel = new Panel({
+		  class: "bg-ui-font-sizer-dialog",
+		  children: [
+			[new Component('div.panel-heading', {children: el("h1","Keyboard Mode to Adjust Pane Tab Sizes - 'Escape' when done", {tabindex:1})})],
+			["leftSide", new Component('div.inset-panel', {
+			  children: [
+					["left",   new OneShotButton("<p>Left Dock</p>"   ,(dockSelection)=>this.setSelectedTabLocation(dockSelection))],
+					["center", new OneShotButton(
+						'<div>Workspace Center</div>'+
+						'<div><kbd class="key-binding">tab</kbd><span>next Dock</span></div>'+
+						'<div><kbd class="key-binding">shift-tab</kbd><span>previous Dock</span></div>'
+					 	,(dockSelection)=>this.setSelectedTabLocation(dockSelection))],
+					["right",  new OneShotButton("<p>Right Dock</p>"  ,(dockSelection)=>this.setSelectedTabLocation(dockSelection))],
+					["bottom", new OneShotButton("Bottom Dock" ,(dockSelection)=>this.setSelectedTabLocation(dockSelection))]
+			  ]
+			})],
+			["rightSide", new Component('div.inset-panel', {
+  			  children: [
+					["escape",      new Button('<kbd class="key-binding">escape   </kbd><span>close this window</span>',     ()=>DispatchCommand('bg-tabs:toggle-size-dialog'))],
+					["reset",       new Button('<kbd class="key-binding">Ctrl-0   </kbd><span>reset to default size</span>', ()=>DispatchCommand('bg-tabs:reset-font-size'))],
+  					["fontBigger",  new Button('<kbd class="key-binding">Ctrl-+   </kbd><span>Bigger Font</span>',           ()=>DispatchCommand('bg-tabs:increase-font-size'))],
+  					["fontSmaller", new Button('<kbd class="key-binding">Ctrl--   </kbd><span>Smaller Font</span>',          ()=>DispatchCommand('bg-tabs:decrease-font-size'))],
+					["lineShorter", new Button('<kbd class="key-binding">Ctrl-up  </kbd><span>Shorter Line</span>',          ()=>DispatchCommand('bg-tabs:decrease-line-height'))],
+  					["lineTaller",  new Button('<kbd class="key-binding">Ctrl-down</kbd><span>Taller Line</span>',           ()=>DispatchCommand('bg-tabs:increase-line-height'))]
+  			  ]
+			})]
+		  ]
+		});
+		this.modalPanel = atom.workspace.addModalPanel({item: this.panel.el, visible: false, autoFocus:true});
+		this.modalPanel.getElement().classList.add("bg-ui-font-sizer-dialog");
+
+		this.setSelectedTabLocation("center");
+	}
 
 
 

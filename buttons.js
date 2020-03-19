@@ -3,7 +3,6 @@
 import { el, list, mount as redomMount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
 import { Component, NormalizeComponentOptions, NormalizeComponentParameters } from './component'
-import { Tooltip } from './tooltips'
 
 // standard Button.
 // Params:
@@ -22,10 +21,9 @@ import { Tooltip } from './tooltips'
 //             buttons but this component changes it so that it will not steal the focus with mouse clicked. The user can still give
 //             it the focus by keyboard navigation. Setting this option to true, returns to the default behavior where the focus will
 //             be left on the button after clicking. Typically toolbar buttons should not steal the focus but form buttons may want to.
-//     style : sub-object containing style properties to add to the Button's this.el DOM element. Note that most style properties
-//             can also be specified at the top level of options.
-//     <Style properties> : any (most?) Style property can be specified (at the top level) and will be set in this Button's el.style 
-//     <DOM properties> : any DOM property can be specified and will be set on the this.el DOM object
+// Options:
+//     <DOM properties and styles>    : See Component
+//     children : array of children components passed to Component::mount. See Component::mount
 export class Button {
 	constructor(nameIconLabel, onActivatedCB,  options, paramNames) {
 		({tagIDClasses:nameIconLabel, options, paramNames, callback: onActivatedCB} = NormalizeComponentParameters(nameIconLabel, onActivatedCB, options, paramNames));
@@ -92,10 +90,9 @@ export class Button {
 //         buttons but this component changes it so that it will not steal the focus with mouse clicked. The user can still give
 //         it the focus by keyboard navigation. Setting this option to true, returns to the default behavior where the focus will
 //         be left on the button after clicking. Typically toolbar buttons should not steal the focus but form buttons may want to.
-//     style : sub-object containing style properties to add to the Button's this.el DOM element. Note that most style properties
-//             can also be specified at the top level of options.
-//     <Style properties> : any (most?) Style property can be specified (at the top level) and will be set in this Button's el.style 
-//     <DOM properties> : any DOM property can be specified and will be set on the this.el DOM object
+// Options:
+//     <DOM properties and styles>    : See Component
+//     children : array of children components passed to Component::mount. See Component::mount
 export class ToggleButton extends Button {
 	constructor(nameIconLabel, onActivatedCB,  options) {
 		super(nameIconLabel, onActivatedCB,  options, "pressed");
@@ -128,7 +125,8 @@ export class ToggleButton extends Button {
 //     options  : an object with various optional keys
 // Options:
 //     target   : target context node for the command. default is atom.workspace.getElement()
-//     attrs    : an object containing any attribute or property that can be set on the new DOM element
+//     <DOM properties and styles>    : See Component
+//     children : array of children components passed to Component::mount. See Component::mount
 export class CommandButton extends Button {
 	constructor(cmdName, nameIconLabel, options) {
 		super(nameIconLabel, ()=>this.onClick(),  options, "target");
@@ -158,24 +156,6 @@ export class CommandButton extends Button {
 
 
 
-// A Toolbar is a container for buttons and other input and informational controls
-// Options:
-export class Toolbar extends Component {
-	constructor(options) {
-		super("div.btn-toolbar", options);
-	}
-}
-
-// A ToolGroup is a container for buttons or other controls that are related. Typically, a Toolbar can have multiple ToolGroups
-// and individual tool items like buttons.  The grouped tools typically are spaced next to each other without space.
-// Options:
-export class ToolGroup extends Component {
-	constructor(options) {
-		super('div.btn-group', options)
-	}
-}
-
-
 // OneShotButton stays pressed when its activated and wont fire its onActivatedCB again until it is reset. Calling reset makes it
 // appear unpressed and it can then be pressed (activated) again. It is used by RadioButtonGroup which resets all the other buttons
 // when any button in the group is pressed.
@@ -194,10 +174,9 @@ export class ToolGroup extends Component {
 //         buttons but this component changes it so that it will not steal the focus with mouse clicked. The user can still give
 //         it the focus by keyboard navigation. Setting this option to true, returns to the default behavior where the focus will
 //         be left on the button after clicking. Typically toolbar buttons should not steal the focus but form buttons may want to.
-//     style : sub-object containing style properties to add to the Button's this.el DOM element. Note that most style properties
-//             can also be specified at the top level of options.
-//     <Style properties> : any (most?) Style property can be specified (at the top level) and will be set in this Button's el.style 
-//     <DOM properties> : any DOM property can be specified and will be set on the this.el DOM object
+// Options:
+//     <DOM properties and styles>    : See Component
+//     children : array of children components passed to Component::mount. See Component::mount
 export class OneShotButton extends ToggleButton {
 	constructor(nameIconLabel, onActivatedCB, options) {
 		super(nameIconLabel, onActivatedCB,  options);
@@ -224,6 +203,8 @@ export class OneShotButton extends ToggleButton {
 //                                  the [name:][icon-<icnName> ][label] parameter.
 //     options : the properties recognized in the options param are described in the Options section
 // Options:
+//     <DOM properties and styles>    : See Component
+//     children : array of children components passed to Component::mount. See Component::mount
 export class RadioButtonGroup extends Component {
 	constructor(onChangeCB, selectedButtonName, buttonsData, options) {
 		super('div.btn-group.mutex', options);
@@ -252,20 +233,5 @@ export class RadioButtonGroup extends Component {
 	setValue(buttonName) {
 		this.onChange(buttonName);
 		this.value = buttonName;
-	}
-}
-
-
-
-
-// Panel is a container for an area of UI
-// Params:
-//     options : an object with various optional keys
-// Options:
-//     attrs    : an object containing any attribute or property that can be set on the new DOM element
-//     children : array of children components to add. See Element.mount for the array syntax
-export class Panel extends Component {
-	constructor(options) {
-		super('test:div.atom-panel', options);
 	}
 }

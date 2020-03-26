@@ -4,7 +4,7 @@ export class AssertError extends Error {
 	constructor(msg, context) {
 console.log(msg);
 		super(msg);
-		this.context = context;
+		this.context = context || "no context provided";
 		Error.captureStackTrace(this, AssertError.constructor);
 		// this.captureStackTrace()
 		console.trace(msg);

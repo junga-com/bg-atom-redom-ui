@@ -5,17 +5,20 @@ import { AssertError } from './errorHandling'
 import { Component, NormalizeComponentOptions, NormalizeComponentParameters } from './component'
 
 
-// Panel is a container for an area of UI
+// Panel is a the top-level container for an area of UI
 // Classes:
 //     padded  : pad the content of this area
 // Params:
-//     options : an object with various optional keys
-// Options:
-//     <DOM properties and styles>    : See Component
-//     children : array of children components passed to Component::mount. See Component::mount
+//    <tagIDClasses>:string : [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]
+//    <content>:<multi>     : various content format. See Component
+//    <namedParams>         : object with named parameters. See Component
+// Named Params:
+//    <DOM properties and styles and content> : Any key supported by Component.
+// See Also:
+//    See Component
 export class Panel extends Component {
-	constructor(options) {
-		super('atom-panel', options);
+	constructor(...p) {
+		super('$atom-panel', ...p);
 	}
 }
 
@@ -32,8 +35,8 @@ export class Panel extends Component {
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class PanelInset extends Component {
-	constructor(options) {
-		super('div.inset-panel', options);
+	constructor(...p) {
+		super('$div.inset-panel', ...p);
 	}
 }
 
@@ -44,37 +47,44 @@ export class PanelInset extends Component {
 //        |  |-header
 //        |  '-content
 //        '-inset2
-// Classes:
+// Supported Classes:
 //     padded  : pad the content of this area
 // Params:
-//     options : an object with various optional keys
-// Options:
-//     <DOM properties and styles>    : See Component
-//     children : array of children components passed to Component::mount. See Component::mount
+//    <title>:string        : Content of the header. Must include a leading space because it is actually just a tagIDClasses parameter.
+//                            'Hello'         -> ignored -- interpreted as tagName which is locked by this class. 
+//                            ' Hello'        -> Text content is 'Hello'
+//                            ' <b>Hello<p>'  -> html interpretted.
+//                            '  <b>Hello<p>' -> html not interpretted -- text content is '<b>Hello<p>'.
+//    <tagIDClasses>:string : [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]
+//    <content>:<multi>     : various content format. See Component
+//    <namedParams>         : object with named parameters. See Component
+// Named Params:
+//    <DOM properties and styles and content> : Any key supported by Component.
+// See Also:
+//    See Component
 export class PanelHeader extends Component {
-	constructor(title, options) {
-		if (typeof title == 'object' && typeof options == 'undefined') {
-			options = title;
-			title = undefined;
-		}
-		super({
-			tagIDClasses: 'div.panel-heading',
-			content: title,
-			options: options
-		});
+	// usage: new PanelHeader(<title> [,<tagIDClasses>] [,<options>] [,<childContent>] .. <in any order or repitition>)
+	// usage: new PanelHeader(<options>)
+	constructor(...p) {
+		super('$div.panel-heading', ...p);
 	}
 }
 
 // PanelBody is a container for an area of UI
-// Classes:
+// It is typically used to separate content from the PanelHeader
+// Supported Classes:
 //     padded  : pad the content of this area
 // Params:
-//     options : an object with various optional keys
-// Options:
-//     <DOM properties and styles>    : See Component
-//     children : array of children components passed to Component::mount. See Component::mount
+//    <tagIDClasses>:string : [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]
+//    <content>:<multi>     : various content format. See Component
+//    <namedParams>         : object with named parameters. See Component
+// Named Params:
+//    <DOM properties and styles and content> : Any key supported by Component.
+// See Also:
+//    See Component
 export class PanelBody extends Component {
-	constructor(options) {
-		super('div.panel-body', options);
+	// usage: new PanelBody([<tagIDClasses>] [,<options>] [,<childContent>] .. <in any order or repitition>)
+	constructor(...componentInfo) {
+		super('$div.panel-body', ...componentInfo);
 	}
 }

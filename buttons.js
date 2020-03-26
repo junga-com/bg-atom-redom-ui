@@ -2,7 +2,12 @@
 
 import { el, list, mount as redomMount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
-import { Component, NormalizeComponentOptions, NormalizeComponentParameters } from './component'
+import { Component, NormalizeComponentOptions, NormalizeComponentParameters, ComponentParams } from './component'
+
+// buttons change the meaning of string params to prioritiz Labels over tagName
+// [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]
+// [name:][#<idName>][.className1[.className2...]][ textContent]
+const reBtnTagIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?(#(?<idName>[-_.a-zA-Z0-9]+))?(?<class>[.][-!_.a-zA-Z0-9]+)? ?((?<icon>icon-[-_a-zA-Z0-9]+)( |$))?(?<content>.*)?$/;
 
 // standard Button.
 // Params:
@@ -25,36 +30,33 @@ import { Component, NormalizeComponentOptions, NormalizeComponentParameters } fr
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class Button {
-	constructor(nameIconLabel, onActivatedCB,  options, paramNames) {
-		({tagIDClasses:nameIconLabel, options, paramNames, callback: onActivatedCB} = NormalizeComponentParameters(nameIconLabel, onActivatedCB, options, paramNames));
-		var optChildren;
-		[this.optRedom, this.optParams, optChildren] =  NormalizeComponentOptions(options, paramNames + " focusOnMouseClick");
-		this.onActivatedCB = onActivatedCB;
+	constructor(tagIDClasses, onActivatedCB,  namedParams, ...p) {
+		var componentParams = new ComponentParams({
+			tagIDClasses: '$button.btn',
+			paramNames: 'focusOnMouseClick'
+		}, tagIDClasses, onActivatedCB, namedParams, ...p);
 
-		// parse the nameIconLabel with a regex with named groups to identify the matched parts.
-		var matches = /^((?<name>[^:]*):)?((?<icon>icon-[-a-zA-Z0-9]*)\s?)?(?<label>.*)$/.exec(nameIconLabel);
-		this.name     = matches.groups.name;
-		this.label    = matches.groups.label;
-		this.iconName = matches.groups.icon;
-		
-		if (this.name)
-			this.optRedom.class += " "+name;
+		this.name          = componentParams.name;
+		this.iconName      = componentParams.optParams.icon;
+		this.onActivatedCB = componentParams.getUnnamedCB('force');
+		this.optParams     = componentParams.optParams;
 
 		if (this.iconName)
-			this.optRedom.class += " icon "+this.iconName;
+			componentParams.class += " icon "+this.iconName;
 
-		this.el = el("button.btn", this.optRedom);
-		this.setLabel(this.label)
+		this.el = el(componentParams.makeREDOMTagString(), Object.assign({}, componentParams.props, {style:componentParams.style}));
+
+		this.setLabel(componentParams.optParams.label);
 		this.el.onclick = (e)=>{this.onClick(e)};
 
-		if (! this.optParams["focusOnMouseClick"])
+		if (! componentParams.optParams["focusOnMouseClick"])
 			this.el.onmousedown = ()=>{this.lastFocused=document.activeElement}
 
 		// TODO: this should use the same algorithm as Component::mount
-		if (optChildren)
-			for (var i=0; i<optChildren.length; i++) {
-				mount(this.el, optChildren[i]);	
-			}
+		// if (optChildren)
+		// 	for (var i=0; i<optChildren.length; i++) {
+		// 		mount(this.el, optChildren[i]);	
+		// 	}
 	}
 
 	onClick(e) {
@@ -65,7 +67,7 @@ export class Button {
 	getLabel() {return this.label}
 
 	setLabel(label) {
-		this.label = label;
+		this.label = label || '';
 		if (/^<[^>]+>/.test(this.label))
 			this.el.innerHTML = this.label;
 		else
@@ -94,8 +96,8 @@ export class Button {
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class ToggleButton extends Button {
-	constructor(nameIconLabel, onActivatedCB,  options) {
-		super(nameIconLabel, onActivatedCB,  options, "pressed");
+	constructor(nameIconLabel, onActivatedCB,  ...options) {
+		super({paramNames: 'pressed'}, nameIconLabel, onActivatedCB,  ...options);
 		this.setPressedState(Boolean(this.optParams["pressed"]));
 	}
 	onClick() {
@@ -128,8 +130,8 @@ export class ToggleButton extends Button {
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class CommandButton extends Button {
-	constructor(cmdName, nameIconLabel, options) {
-		super(nameIconLabel, ()=>this.onClick(),  options, "target");
+	constructor(cmdName, nameIconLabel, ...options) {
+		super({paramNames:'target'}, nameIconLabel, ()=>this.onClick(),  ...options);
 		this.cmdName = cmdName;
 
 		this.cmdTarget = this.optParams["target"] || atom.workspace.getElement();
@@ -178,8 +180,8 @@ export class CommandButton extends Button {
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class OneShotButton extends ToggleButton {
-	constructor(nameIconLabel, onActivatedCB, options) {
-		super(nameIconLabel, onActivatedCB,  options);
+	constructor(nameIconLabel, onActivatedCB, ...options) {
+		super(nameIconLabel, onActivatedCB,  ...options);
 	}
 	reset() {
 		this.setPressedState(false);
@@ -206,8 +208,8 @@ export class OneShotButton extends ToggleButton {
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class RadioButtonGroup extends Component {
-	constructor(onChangeCB, selectedButtonName, buttonsData, options) {
-		super('div.btn-group.mutex', options);
+	constructor(onChangeCB, selectedButtonName, buttonsData, ...options) {
+		super('$div.btn-group.mutex', ...options);
 		this.onChangeCB = onChangeCB;
 		this.value = selectedButtonName;
 		for (var i=0; buttonsData && i<buttonsData.length; i++) {

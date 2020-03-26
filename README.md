@@ -24,7 +24,7 @@ For each Component you create, you can define define these qualities.
 * tagName : the type of HTML node -- div, span, button, <custom>, etc...
 * id : optional. Not often used because its absolute on the page as opposed to relative to where it is so you can only use an id on singleton components that can not be created more than once in a page
 * class : list of tags that classify the node. 
-* DOMProperties : any supportted properties of the tagName
+* DOMProperties : any supported properties of the tagName
 * StyleAttributes : any style 
 * content : the sub tree below this Component. Can be text string, html string, DOMNode, Component, object to construct a Component, or an array of any of those things.
 

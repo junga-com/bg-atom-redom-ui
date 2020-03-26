@@ -9,8 +9,8 @@ import { Component, NormalizeComponentOptions, NormalizeComponentParameters } fr
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class Toolbar extends Component {
-	constructor(options) {
-		super("div.btn-toolbar", options);
+	constructor(...options) {
+		super("$div.btn-toolbar", ...options);
 	}
 }
 
@@ -20,7 +20,7 @@ export class Toolbar extends Component {
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class ToolGroup extends Component {
-	constructor(options) {
-		super('div.btn-group', options)
+	constructor(...options) {
+		super('$div.btn-group', ...options)
 	}
 }

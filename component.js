@@ -1,6 +1,6 @@
 'use babel';
 
-import { el, list, mount as redomMount, setAttr, text } from 'redom';
+import { el, list, mount as redomMount, unmount as redomUnmount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
 import { getEl, NormalizeComponentParameters, NormalizeComponentOptions, reEmpty, ComponentParams, reHTMLContent, reVarName } from './componentUtils'
 
@@ -165,7 +165,8 @@ export class Component {
 				if (reHTMLContent.test(childContent)) {
 					// it begins with an html tag so interpret it as html
 					element = el('');
-					element.outerHTML = childContent;
+					element.innerHTML = childContent.trim();
+					element = element.firstChild;
 				}
 				else
 					element = text(childContent);
@@ -203,7 +204,7 @@ export class Component {
 			this[name] = childContent;
 			childContent.name = name;
 			this.mounted.push(name);
-			getEl(childContent).classList.add(name);
+			var elNode = getEl(childContent); if (elNode && elNode.classList) elNode.classList.add(name);
 		} else {
 			this.mountedUnamed.push(childContent);
 		}
@@ -218,12 +219,14 @@ export class Component {
 	// remove a child from this element including its DOM element
 	// if a child is unamed, you cant remove it with this function but you could still find its DOM element and remove it that way.
 	unmount(name) {
+		var child = this[name];
 		redomUnmount(this, this[name]);
 		var i = this.mounted.indexOf(name);
 		if (i != -1) this.mounted.splice(i,1);
 		if (this[name].parent === this)
 			delete this[name].parent;
 		delete this[name];
+		return child;
 	}
 
 

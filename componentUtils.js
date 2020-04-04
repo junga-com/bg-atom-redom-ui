@@ -362,7 +362,7 @@ export class ComponentParams {
 		// first, make a quick pass to assemble all the paramNames so that we can correctly classify optional parameters declared
 		// by all the component classes in the hierarchy. paramNames can only be set in options objects.
 		for (var i=0; i<params.length; i++) {
-			if (typeof params[i] == 'object' && typeof params[i].paramNames == 'string')
+			if (params[i] && typeof params[i] == 'object' && typeof params[i].paramNames == 'string')
 				this.paramNames += ' '+params[i].paramNames;
 		}
 		// make a map of the optParams names for efficient classification lookups.
@@ -372,7 +372,7 @@ export class ComponentParams {
 
 		// now do a second pass through the params that does the real work. The purpose is to reduce the arbitrarily long list of
 		// tagIDClasses, options, functions, and content into one set of information about the component instance being created.
-		for (var i=0; i<params.length; i++) {
+		for (var i=0; i<params.length; i++) if (params[i]) {
 			switch (typeof params[i]) {
 				case 'object':
 					// detect any content type object

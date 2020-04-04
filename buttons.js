@@ -62,6 +62,7 @@ export class Button {
 	onClick(e) {
 		this.lastFocused && this.lastFocused.focus(); this.lastFocused=null;
 		this.onActivatedCB && this.onActivatedCB(this, e);
+		this.onActivated(e);
 	}
 
 	getLabel() {return this.label}
@@ -73,6 +74,8 @@ export class Button {
 		else
 			this.el.innerText = this.label
 	}
+
+	onActivated(e) {}
 }
 
 // ToggleButton is two-state. When activated it toggles between pressed(true) and unpressed(false). The callback is passed the 
@@ -130,13 +133,13 @@ export class ToggleButton extends Button {
 //     <DOM properties and styles>    : See Component
 //     children : array of children components passed to Component::mount. See Component::mount
 export class CommandButton extends Button {
-	constructor(cmdName, nameIconLabel, ...options) {
-		super({paramNames:'target'}, nameIconLabel, ()=>this.onClick(),  ...options);
+	constructor(tagIDClasses, cmdName, ...options) {
+		super(tagIDClasses, {paramNames:'target'}, ()=>this.onClick(),  ...options);
 		this.cmdName = cmdName;
 
 		this.cmdTarget = this.optParams["target"] || atom.workspace.getElement();
 		const allCommands = atom.commands.findCommands({target: this.cmdTarget});
-		const command = allCommands.filter((command) => command.name === cmdName)[0];
+		const command = allCommands.filter((command) => command.name === cmdName)[0] || {displayName:'unknown', description:'unknown'};
 
 		if (!this.getLabel() && !this.iconName) {
 			this.setLabel(command.displayName);

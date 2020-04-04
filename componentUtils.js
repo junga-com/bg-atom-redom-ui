@@ -1,5 +1,3 @@
-'use babel';
-
 import clonedeep from 'lodash.clonedeep'
 import { AssertError } from './errorHandling'
 
@@ -15,12 +13,12 @@ export const reVarName      = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
 // reTagIDClasses makes tagName the default text 
 // [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]
-export const reTagIDClasses   = /^((?<name>[_a-zA-Z0-9]*):)?(?<tagName>[-_a-zA-Z0-9]*)?(#(?<idName>[-_a-zA-Z0-9]*))?(?<class>[.][-!_.a-zA-Z0-9]*)?([\s,]((?<icon>icon-[-_a-zA-Z0-9]+)([\s,]|$))?(?<label>.*))?$/;
+export const reTagIDClasses   = /^((?<name>[_a-zA-Z0-9]*):)?(?<tagName>[-_a-zA-Z0-9]*)?(#(?<idName>[-_a-zA-Z0-9]*))?(?<className>[.][-!_.a-zA-Z0-9]*)?([\s,]((?<icon>icon-[-_a-zA-Z0-9]+)([\s,]|$))?(?<label>.*))?$/;
 
 // reContentIDClasses makes content the default text and changes tagName to require a leading $
 // the re group names are the parameter names. This re must match '' (all groups are optional) 
 // [name:][$<tagName>][#<idName>][.className1[.className2...]][ textContent]
-export const reContentIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?([$](?<tagName>[-_a-zA-Z0-9]*))?(#(?<idName>[-_a-zA-Z0-9]*))?(?<class>[.][-!_.a-zA-Z0-9]*)?[\s,]?((?<icon>icon-[-_a-zA-Z0-9]+)([\s,]|$))?(?<label>.*)?$/;
+export const reContentIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?([$](?<tagName>[-_a-zA-Z0-9]*))?(#(?<idName>[-_a-zA-Z0-9]*))?(?<className>[.][-!_.a-zA-Z0-9]*)?[\s,]?((?<icon>icon-[-_a-zA-Z0-9]+)([\s,]|$))?(?<label>.*)?$/;
 
 
 // This map looks up a name and returns true if it is a known style property name. It is used to move options object's member names
@@ -341,24 +339,23 @@ const knownStyleProperties = {
 //     optParams,props,styles : these are containers of named data and each key is treated separately according to its name.  
 //
 export class ComponentParams {
-	// single valued params are defined as undefined and combinable params are initialized to their empty type
-	tagName       = undefined
-	name          = undefined
-	idName        = undefined
-	class         = ''
-	content       = []
-	optParams     = {}
-	paramNames    = 'label icon '
-	props         = {}
-	styles        = {}
-	unnamedCB     = []
-
-	lockedParams = {}
-	mapOfOptParamNames = {}
-
 	// params can be any number of the following in any order
 	//   tagIDClasses:string, options:object, callback:function, domEl:object(w/nodeType), component:object(w/el), or content:array
 	constructor(...params) {
+		// single valued params are defined as undefined and combinable params are initialized to their empty type
+		this.tagName       = undefined;
+		this.name          = undefined;
+		this.idName        = undefined;
+		this.className         = '';
+		this.content       = [];
+		this.optParams     = {};
+		this.paramNames    = 'label icon ';
+		this.props         = {};
+		this.styles        = {};
+		this.unnamedCB     = [];
+		this.lockedParams = {};
+		this.mapOfOptParamNames = {};
+
 		// first, make a quick pass to assemble all the paramNames so that we can correctly classify optional parameters declared
 		// by all the component classes in the hierarchy. paramNames can only be set in options objects.
 		for (var i=0; i<params.length; i++) {
@@ -411,17 +408,17 @@ export class ComponentParams {
 
 	// return a classifier string which determines how to reduce the attribute 
 	classifyAttribute(name) {
-		if (/^(class|content|paramNames|tagIDClasses|unnamedCB)$/.test(name))
-			return name;
-		else if (/(tagName|name|idName)/.test(name))   return 'top';
-		else if (name == 'children')                   return 'content';
-		else if (name == 'optParams')                  return 'optParams';
-		else if (name == 'styles')                     return 'styles';
-		else if (name == 'style')                      return 'styles';
-		else if (name == 'props')                      return 'props';
-		else if (name in this.mapOfOptParamNames)      return 'optParams';
-		else if (name in knownStyleProperties)         return 'styles';
-		else                                           return 'props';
+		if (/^(content|paramNames|tagIDClasses|unnamedCB)$/.test(name)) return name;
+		else if (/(className|class|classes|classNames)/.test(name))     return 'className';
+		else if (/(tagName|name|idName)/.test(name))                    return 'top';
+		else if (name == 'children')                                    return 'content';
+		else if (name == 'optParams')                                   return 'optParams';
+		else if (name == 'styles')                                      return 'styles';
+		else if (name == 'style')                                       return 'styles';
+		else if (name == 'props')                                       return 'props';
+		else if (name in this.mapOfOptParamNames)                       return 'optParams';
+		else if (name in knownStyleProperties)                          return 'styles';
+		else                                                            return 'props';
 	}
 
 
@@ -434,7 +431,6 @@ export class ComponentParams {
 
 		// the classifier will tell us how to reduce it
 		var attrClassifier = this.classifyAttribute(name);
-//console.log(name+' is a '+attrClassifier);
 
 		var objContainer
 		switch (attrClassifier) {
@@ -443,12 +439,12 @@ export class ComponentParams {
 				this.content.push(value);
 				return;
 
-			case 'class':
+			case 'className':
 				// classes are not first come first server except that '!' prevents additional classes from base classes from being added. 
 				if (Array.isArray(value)) value = value.join(' ');
 				if (/[!]/.test(value))
 					this.lockedParams[name] = true;
-				this.class += " "+value.replace(/[!.]/g, ' ');
+				this.className += " "+value.replace(/[!.]/g, ' ');
 				return;
 
 			case 'paramNames':
@@ -463,7 +459,6 @@ export class ComponentParams {
 				// the group names in reContentIDClasses correspond to the real attribute names so matched.group can be reduced like 
 				// any options object 
 				for (var name in matched.groups)
-//console.log('name='+name+'  value'+value);
 					this.reduceAttribute(name, matched.groups[name]);
 				return;
 
@@ -509,8 +504,8 @@ export class ComponentParams {
 		var redomTagStr = this.tagName
 		if (this.idName)
 			redomTagStr += "#"+this.idName;
-		if (this.class) {
-			redomTagStr += "."+this.class.replace(/(^\s+)|(\s+$)/,'').replace(/\s+/g,'.')
+		if (this.className) {
+			redomTagStr += "."+this.className.replace(/(^\s+)|(\s+$)/,'').replace(/\s+/g,'.')
 		}
 		return redomTagStr || '';
 	}
@@ -526,107 +521,4 @@ export class ComponentParams {
 					this.unnamedCB[i](...p)
 			}
 	}
-}
-
-
-
-// This function is used by Component and other Component-like classes (e.g. Button) to allow the user to specify only the positional
-// parameters they need without having to specify other parameters just because they are positional parameters before the one they need.
-export function NormalizeComponentParameters(tagIDClasses, options, paramNames, callback, ...moreOptionsOrParamNames) {
-	var params = [tagIDClasses, options, paramNames, callback];
-	tagIDClasses = null; options = null; paramNames = null; callback = null;
-	for (var i=0; i<params.length; i++) {
-		switch (typeof params[i]) {
-			case 'string':
-				if (tagIDClasses) {
-					if (typeof params[i-1] == 'undefined') {
-						options = params[i-1];
-						paramNames = params[i]
-					} else
-						throw new AssertError("Invalid call to component style constructor -- a second string that does not follow the options object was encountered at params["+i+"]", {params: params, tagIDClasses: tagIDClasses, options: options, paramNames: paramNames, callback: callback})
-				} else
-					tagIDClasses = params[i];
-				break;
-			case 'function':
-				if (callback)
-					throw new AssertError("Invalid call to component style constructor -- a second callback was encountered at params["+i+"]", {params: params, tagIDClasses: tagIDClasses, options: options, paramNames: paramNames, callback: callback})
-				callback = params[i];
-				break;
-			case 'object':
-				if (options)
-					throw new AssertError("Invalid call to component style constructor -- a second object was encountered at params["+i+"]. options shuould be the only object", {params: params, tagIDClasses: tagIDClasses, options: options, paramNames: paramNames, callback: callback})
-				options = params[i];
-				if (typeof params[i+1] == 'string') {
-					paramNames = params[i+1]
-					i++;
-				}
-				break;
-		}
-	}
-
-	// console.log({
-	// 	msg: "!!!NormCompParams!!!",
-	// 	in: params,
-	// 	out: {
-	// 		tagIDClasses:tagIDClasses,
-	// 		options:    options,
-	// 		paramNames: paramNames,
-	// 		callback:   callback
-	// 	}
-	// });
-	return {tagIDClasses: tagIDClasses || "", options: options || {}, paramNames: paramNames || "", callback: callback}
-}
-
-// The idea behind this function is that when creating a component, its important to allow the user to specify any of the properties
-// that can be set on a DOM element and other information supportd by the Component author but not require them to create a verbose,
-// deeply nested object structure.
-// This allows the user to set DOM properties, Styles, and Component specific options all at the top level of the options object.
-// Name conflicts are not generally a problem because all these things refer to contruction information about the same DOM element.
-// Optional Parameters:
-//    These are names that the component author comes up with for the user to control features of the component. They are identified
-//    by the author passing in a spacce separate list of these names. They will be moved from the top level of the options object
-//    into a subobject called 'params'
-export function NormalizeComponentOptions(options, paramNames) {
-	// first remove the children array if any since it could be big and we dont want to deep clone it
-	const children = options["children"] 
-	if ("children" in options) delete options["children"];
-
-	// deep clone the options because we are going to modify it and the input options might be used to create multiple Components 
-	options = clonedeep(options);
-
-	if (!options)
-		options = {}
-	paramNames = (paramNames) ?paramNames:"";
-
-	if (typeof options != 'object')
-		throw new AssertError("The options parameter must be either null or an object.", {options: options})
-
-	// make sure our known subobjects exist so that we dont have to guard everywhere that we use them
-	if (typeof options["style"] != 'object')
-		options["style"] = {};
-
-	// separate member vars at the top level into sub members if they match knowns names. 
-	var params = {};
-	var paramNamesRegEx = RegExp('^(' + paramNames.replace(/\s+/g, '|') + ')$')
-	for (var name in options) {
-		if (paramNamesRegEx.test(name)) {
-			params[name] = options[name];
-			delete options[name];
-		} else if (name in knownStyleProperties) {
-			options["style"][name] = options[name];
-			delete options[name];
-		}
-	}
-
-	// support common aliases of className property
-	for (const name of ["className","classes"])
-		if (options[name]) {
-			options["class"] += " "+options[name]
-			delete options[name];
-		}
-
-	if (!( "class" in options))
-		options["class"] = '';
-
-	return [options, params, children];
 }

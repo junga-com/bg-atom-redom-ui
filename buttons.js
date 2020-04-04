@@ -1,8 +1,6 @@
-'use babel';
-
 import { el, list, mount as redomMount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
-import { Component, NormalizeComponentOptions, NormalizeComponentParameters, ComponentParams } from './component'
+import { Component, ComponentParams } from './component'
 
 // buttons change the meaning of string params to prioritiz Labels over tagName
 // [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]

@@ -1,8 +1,6 @@
-'use babel';
-
 import { el, list, mount as redomMount, unmount as redomUnmount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
-import { getEl, NormalizeComponentParameters, NormalizeComponentOptions, reEmpty, ComponentParams, reHTMLContent, reVarName } from './componentUtils'
+import { getEl, reEmpty, ComponentParams, reHTMLContent, reVarName } from './componentUtils'
 
 export * from './componentUtils'
 
@@ -82,15 +80,10 @@ export * from './componentUtils'
 // Usage:
 //    new Component(<tagIDClasses> [,<content>] [,options] [,<callback>])
 export class Component {
-	componentParams
-	name
-	optParams
-	mounted = []
-	mountedUnamed = []
-	el
-
 	constructor(tagIDClasses, options, ...moreOptionsOrParamNames) {
 		this.componentParams = new ComponentParams(tagIDClasses, options, ...moreOptionsOrParamNames);
+		this.mounted          = [];
+		this.mountedUnamed    = [];
 
 		this.name = this.componentParams.name;
 		this.optParams = this.componentParams.optParams;

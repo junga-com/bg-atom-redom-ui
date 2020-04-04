@@ -1,11 +1,9 @@
-'use babel';
-
 import { CompositeDisposable } from 'atom';
 import { Component } from './component'
 import { Panel, PanelHeader, PanelBody } from './panels'
 import { TextEditor, Dragger } from './miscellaneous'
 
-exampleData = {
+let exampleData = {
 	example1: `
 		 new Panel({
 		 	name: "example1",
@@ -83,7 +81,7 @@ class OneDemoAndCodeView extends Panel {
 }
 
 
-bableMap = {
+let bableMap = {
 	"Panel": "_panels.Panel",
 	"PanelHeader": "_panels.PanelHeader",
 	"PanelBody": "_panels.PanelBody",

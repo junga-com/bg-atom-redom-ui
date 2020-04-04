@@ -1,5 +1,3 @@
-'use babel';
-
 import { Component } from './component'
 
 export class TextEditor extends Component {

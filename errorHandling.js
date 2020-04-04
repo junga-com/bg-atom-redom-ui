@@ -1,5 +1,3 @@
-'use babel';
-
 export class AssertError extends Error {
 	constructor(msg, context) {
 console.log(msg);

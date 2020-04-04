@@ -1,8 +1,6 @@
-'use babel';
-
 import { el, list, mount as redomMount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
-import { Component, NormalizeComponentOptions, NormalizeComponentParameters } from './component'
+import { Component } from './component'
 
 
 // Panel is a the top-level container for an area of UI

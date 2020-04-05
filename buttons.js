@@ -2,10 +2,6 @@ import { el, list, mount as redomMount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
 import { Component, ComponentParams } from './component'
 
-// buttons change the meaning of string params to prioritiz Labels over tagName
-// [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]
-// [name:][#<idName>][.className1[.className2...]][ textContent]
-const reBtnTagIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?(#(?<idName>[-_.a-zA-Z0-9]+))?(?<class>[.][-!_.a-zA-Z0-9]+)? ?((?<icon>icon-[-_a-zA-Z0-9]+)( |$))?(?<content>.*)?$/;
 
 // standard Button.
 // Params:
@@ -40,7 +36,7 @@ export class Button {
 		this.optParams     = componentParams.optParams;
 
 		if (this.iconName)
-			componentParams.class += " icon "+this.iconName;
+			componentParams.className += " icon "+this.iconName;
 
 		this.el = el(componentParams.makeREDOMTagString(), Object.assign({}, componentParams.props, {style:componentParams.style}));
 

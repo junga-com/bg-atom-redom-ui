@@ -346,7 +346,7 @@ export class ComponentParams {
 		this.tagName       = undefined;
 		this.name          = undefined;
 		this.idName        = undefined;
-		this.className         = '';
+		this.className     = '';
 		this.content       = [];
 		this.optParams     = {};
 		this.paramNames    = 'label icon ';

@@ -2,7 +2,7 @@
   "name": "bg-atom-redom-ui",
   "main": "esmToCjsBridge.js",
   "module": "./bg-atom-redom-ui.js",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Atom plugin UI Component library using REDOM and compliant with the Atom style guide",
   "keywords": [
     "atom",

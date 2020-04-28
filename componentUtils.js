@@ -1,4 +1,5 @@
 import clonedeep from 'lodash.clonedeep'
+import { el, list, mount as redomMount, unmount as redomUnmount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
 
 // redom does not export this function so repeat it
@@ -8,7 +9,7 @@ export function getEl (parent) {
 
 // compiled common Regular Expressions
 export const reEmpty        = /^\s*$/;
-export const reHTMLContent  = /^<[^>]+>/;
+export const reHTMLContent  = /^\s*<[^>]+>/;
 export const reVarName      = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
 // reTagIDClasses makes tagName the default text 
@@ -20,6 +21,7 @@ export const reTagIDClasses   = /^((?<name>[_a-zA-Z0-9]*):)?(?<tagName>[-_a-zA-Z
 // [name:][$<tagName>][#<idName>][.className1[.className2...]][ textContent]
 export const reContentIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?([$](?<tagName>[-_a-zA-Z0-9]*))?(#(?<idName>[-_a-zA-Z0-9]*))?(?<className>[.][-!_.a-zA-Z0-9]*)?[\s,]?((?<icon>icon-[-_a-zA-Z0-9]+)([\s,]|$))?(?<label>.*)?$/;
 
+export const bgComponent=Symbol.for('bgComponent');
 
 // This map looks up a name and returns true if it is a known style property name. It is used to move options object's member names
 // that the user puts at the top level into the 'style' sub-member. This makes it easier for users to specify just a few styles.
@@ -521,4 +523,150 @@ export class ComponentParams {
 					this.unnamedCB[i](...p)
 			}
 	}
+}
+
+
+// Form a parent<->child relationship between DOM Elements.
+// This is a wrapper over the <domNode>.appendChild/insertBefore methods. It adds two features.
+//    1. The child content can be specified in more flexible ways
+//    2. It maintains named links in the prent to the child under these circumstances
+//        * If a name is available for a child node
+//        * the parent has the [bgComponent] key (indicating that it is opting into this behavior)
+//
+// ChildContent Types:
+// Several types of children content are supported.
+//     component : object(w/.el)       : any JS object with a 'el' property (el should be a DOM Node)
+//     DOMNode   : object(w/.nodeType) : DOMNodes are identified by having a 'nodeType' property
+//     plain text: string(s[0]!="<")   : Plain text will be appended as a text node. 
+//     html text : string(s[0]=="<")   : HTML test will be converted to a component whose outerHTML is the provided text
+//     multiple Children : array       : multiple children can be given in an array. Each array element can be any of the 
+//                                       supported types including a nested array. Array nesting will not affect how the child
+//                                       hiearchy is built -- all children will be traversed and added to this component directly.
+//                                       The one difference is if name is specified and content is an array, the <name> property
+//                                       created in the parent will be an array with elements poiting to the children. Any 
+//                                       children in the array that have a name property will have a reference added as that
+//                                       name reardless of whether the array itself is named. Typically, arrays will not be named
+//                                       and there is no difference between adding the children individually or within an array.
+// ComponentUnmount:
+//     To avoid memory leaks, ComponentMount and ComponentUnmount should be called in matching pairs. If you call ComponentMount
+//     then you should call ComponentUnmount to undo the cyclic references when the dom element is no longer needed. 
+//     The exception to this is if the child is unamed. In that case no extra references are formed and the discarding the parent
+//     DOM node is sufficient.
+//
+// Params:
+//    name:string          : the variable-like name of the child. If not provided, <childContent>.name will be used. If that
+//                           does not exist, childContent will be unamed with regard to its parent.
+//                           The special name 'unnamed' is recognized as no name being passed. This could be useful to avoid ambiguity
+//    childContent:<multi> : the content to be added to this component's children. It can be given in any of the types described above.
+//    insertBefore:object  : (optional) the existing child to insert childContent before as a DOM Node or component object.
+//                           Default is append to end fo existing
+// Usage:
+// The name parameter is optional but for readability, it is the second parameter if provided.
+// Note that if first param is a single word content and the insertBefore is specified it will incorrectly be interpreted as
+// Form1.  You can pass 'unnamed' as the first paramter avoid ambiguity and still result in an unnamed child.
+//    Form1: ComponentMount(<parent>, <name>, <childContent> [,<insertBefore>])
+//    Form2: ComponentMount(<parent>, <childContent> [,<insertBefore>])
+export function ComponentMount(parent, p1, p2, p3) {
+	// detect form1 and form2
+	var name, childContent, insertBefore;
+	// if p3 is specified the user maust have called with 3 params so it must be form 1
+	// The only other form 1 cases is when p2 is specified and p1 is a valid name
+	// When p1 is content that happens to also be a valid name and insertBefore is specified, it will be incorrectly classified.
+	const p2Specified = (typeof p2 != 'undefined');
+	const p3Specified = (typeof p3 != 'undefined');
+	const p1CanBeAName= (typeof p1 == 'string' && reVarName.test(p1));
+	if ((p3Specified) || (p2Specified && p1CanBeAName)) {
+		name         = p1; if (name == "unnamed") name='';
+		childContent = p2
+		insertBefore = p3
+	} else {
+		childContent = p1
+		insertBefore = p2
+	}
+
+	// when specifying children content, sometimes its convenient to allow the expression to result null, so just ignore this case
+	if (childContent == null)
+		return;
+
+	switch (typeof childContent) {
+		// ChildContent can be null but not undefined. This is either a logic error in Form1/Form2 detection or the caller explicitly
+		// passed 'undefined' as the content
+		case 'undefined':
+			throw AssertError("ChildContent can be null but not undefined.");
+
+		case 'string':
+			var element;
+			if (reHTMLContent.test(childContent)) {
+				// it begins with an html tag so interpret it as html
+				element = el('');
+				element.innerHTML = childContent.trim();
+				element = element.firstChild;
+			}
+			else
+				element = text(childContent);
+
+			childContent = element;
+			break;
+
+		case 'object':
+			// iterate an array of children and recursively add them
+			if (Array.isArray(childContent)) {
+				if (name && parent[bgComponent])
+					parent[name]=[];
+				for (var i =0; i<childContent.length; i++) {
+					// recurse explicitly with all the params to avoid any ambiguity -- if insertBefore is undefined, pass null
+					var mountedChild = ComponentMount(parent, null, childContent[i], insertBefore || null);
+					if (name && parent[bgComponent])
+						parent[name][i] = mountedChild;
+				}
+				return childContent;
+			}
+			break;
+
+		default:
+			throw new AssertError("Invalid arguments. ChildContent needs to be an object, array or string", {childContent:childContent,p1:p1,p2:p2,p3:p3, type:typeof childContent});
+	}
+
+	// do the work
+	redomMount(parent, childContent, insertBefore);
+
+	// if name was not explicitly passed in, see if we can get it from the content
+	if (!name && typeof childContent == 'object' && childContent.name)
+		name = childContent.name;
+
+	if (parent[bgComponent]) {
+		if (name) {
+			parent[name] = childContent;
+			childContent.name = name;
+			if (!parent.mounted)
+				parent.mounted = [];
+			parent.mounted.push(name);
+			var elNode = getEl(childContent); if (elNode && elNode.classList) elNode.classList.add(name);
+		} else {
+			if (!parent.mountedUnamed)
+				parent.mountedUnamed = [];
+			parent.mountedUnamed.push(childContent);
+		}
+	}
+
+	if (childContent[bgComponent]) {
+		if (childContent.parent)
+			console.log('replacing childContent.parent = ',childContent.parent, ' with ', parent);
+		childContent.parent = parent;
+	}
+
+	return childContent;
+}
+
+// Tear down the parent<->child relationship that ComponentMount created and remove the DOM child relationship also.
+export function ComponentUnmount(parent, name) {
+	var child = parent[name];
+	assert(!!child, "unmounting a child with ComponentUnmount that does not exist in the parent")
+	redomUnmount(parent, parent[name]);
+	var i = parent.mounted.indexOf(name);
+	if (i != -1) parent.mounted.splice(i,1);
+	if (parent[name].parent === parent)
+		delete parent[name].parent;
+	delete parent[name];
+	return child;
 }

@@ -1,6 +1,7 @@
 export * from 'redom'
 export * from './errorHandling'
 export * from './component'
+export * from './componentUtils'
 export * from './buttons'
 export * from './toolbars'
 export * from './panels'

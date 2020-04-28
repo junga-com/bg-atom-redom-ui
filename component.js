@@ -1,8 +1,6 @@
 import { el, list, mount as redomMount, unmount as redomUnmount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
-import { getEl, reEmpty, ComponentParams, reHTMLContent, reVarName } from './componentUtils'
-
-export * from './componentUtils'
+import { ComponentParams, ComponentMount, ComponentUnmount, bgComponent, reHTMLContent } from './componentUtils'
 
 // Component is a base class to make writing DOM components easier.
 // The spirit of this Component class is that writing interactive UI applications in Javascript, be they delivered by web or be they
@@ -81,6 +79,7 @@ export * from './componentUtils'
 //    new Component(<tagIDClasses> [,<content>] [,options] [,<callback>])
 export class Component {
 	constructor(tagIDClasses, options, ...moreOptionsOrParamNames) {
+		this[bgComponent] = true;
 		this.componentParams = new ComponentParams(tagIDClasses, options, ...moreOptionsOrParamNames);
 		this.mounted          = [];
 		this.mountedUnamed    = [];
@@ -96,9 +95,13 @@ export class Component {
 		this.mount(this.componentParams.content);
 	}
 
-	// add children to the DOM under this Element.
-	// This not only adds the childContent in the DOM but also maintains member variables in the parent to navigate to its children
-	// if childContent contains name(s).
+	// add children to this Component.
+	// This is a wrapper over the <domNode>.appendChild/insertBefore methods. It adds two features.
+	//    1. The child content can be specified in more flexible ways
+	//    2. It maintains named links in the prent to the child under these circumstances
+	//        * If a name is available for a child node
+	//        * the parent has the [bgComponent] key (indicating that it is opting into this behavior)
+	//
 	// ChildContent Types:
 	// Several types of children content are supported.
 	//     component : object(w/.el)       : any JS object with a 'el' property (el should be a DOM Node)
@@ -126,102 +129,14 @@ export class Component {
 	//    Form1: <obj>.mount(<name>, <childContent> [,<insertBefore>])
 	//    Form2: <obj>.mount(<childContent> [,<insertBefore>])
 	mount(p1, p2, p3) {
-		// detected form1 and form2
-		var name, childContent, insertBefore;
-		// if p3 is specified the user maust have called with 3 params so it must be form 1
-		// The only other form 1 cases is when p2 is specified and p1 is a valid name
-		// When p1 is content that happens to also be a valid name and insertBefore is specified, it will be incorrectly classified.
-		const p2Specified = (typeof p2 != 'undefined');
-		const p3Specified = (typeof p3 != 'undefined');
-		const p1CanBeAName= (typeof p1 == 'string' && reVarName.test(p1));
-		if ((p3Specified) || (p2Specified && p1CanBeAName)) {
-			name         = p1; if (name == "unnamed") name='';
-			childContent = p2
-			insertBefore = p3
-		} else {
-			childContent = p1
-			insertBefore = p2
-		}
-
-		// when specifying children content, sometimes its convenient to allow the expression to result null, so just ignore this case
-		if (childContent == null)
-			return;
-
-		switch (typeof childContent) {
-			// ChildContent can be null but not undefined. This is either a logic error in Form1/Form2 detection or the caller explicitly
-			// passed 'undefined' as the content
-			case 'undefined':
-				throw AssertError("ChildContent can be null but not undefined.");
-
-			case 'string':
-				var element;
-				if (reHTMLContent.test(childContent)) {
-					// it begins with an html tag so interpret it as html
-					element = el('');
-					element.innerHTML = childContent.trim();
-					element = element.firstChild;
-				}
-				else
-					element = text(childContent);
-
-				childContent = element;
-				break;
-
-			case 'object':
-				// iterate an array of children and recursively add them
-				if (Array.isArray(childContent)) {
-					if (name)
-						this[name]=[];
-					for (var i =0; i<childContent.length; i++) {
-						// explicitly call it with 3 params to avoid any ambiguity -- if insertBefore is undefined, pass null
-						var mountedChild = this.mount(null, childContent[i], insertBefore || null);
-						if (name)
-							this[name][i] = mountedChild;
-					}
-					return childContent;
-				}
-				break;
-
-			default:
-				throw new AssertError("Invalid arguments. ChildContent needs to be an object, array or string", {childContent:childContent,p1:p1,p2:p2,p3:p3, type:typeof childContent});
-		}
-
-		// do the work
-		redomMount(this, childContent, insertBefore);
-
-		// if name was not explicitly passed in, see if we can get it from the content
-		if (!name && typeof childContent == 'object' && childContent.name)
-			name = childContent.name;
-
-		if (name) {
-			this[name] = childContent;
-			childContent.name = name;
-			this.mounted.push(name);
-			var elNode = getEl(childContent); if (elNode && elNode.classList) elNode.classList.add(name);
-		} else {
-			this.mountedUnamed.push(childContent);
-		}
-
-		if (childContent.parent)
-			console.log(childContent.parent);
-		childContent.parent = this;
-
-		return childContent;
+		return ComponentMount(this, p1, p2, p3)
 	}
 
-	// remove a child from this element including its DOM element
+	// remove a child from this Component by name
 	// if a child is unamed, you cant remove it with this function but you could still find its DOM element and remove it that way.
 	unmount(name) {
-		var child = this[name];
-		redomUnmount(this, this[name]);
-		var i = this.mounted.indexOf(name);
-		if (i != -1) this.mounted.splice(i,1);
-		if (this[name].parent === this)
-			delete this[name].parent;
-		delete this[name];
-		return child;
+		return ComponentUnmount(this, name)
 	}
-
 
 	// override these to take actions when the component is added or removed from the DOM
 	onmount() {}
@@ -252,3 +167,9 @@ export class Component {
 		}
 	}
 }
+
+Component.sym = bgComponent;
+Component.mount = ComponentMount;
+Component.unmount = ComponentUnmount
+Component.text = text
+Component.setAttr = setAttr

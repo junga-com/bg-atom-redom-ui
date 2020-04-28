@@ -1,6 +1,7 @@
 import { el, list, mount as redomMount, setAttr, text } from 'redom';
 import { AssertError } from './errorHandling'
-import { Component, ComponentParams } from './component'
+import { Component } from './component'
+import { ComponentParams } from './componentUtils'
 
 
 // standard Button.

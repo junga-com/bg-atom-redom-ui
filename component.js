@@ -1,5 +1,4 @@
-import { el, list, mount as redomMount, unmount as redomUnmount, setAttr, text } from 'redom';
-import { AssertError } from './errorHandling'
+import { el, unmount as redomUnmount, setAttr, text } from 'redom';
 import { ComponentParams, ComponentMount, ComponentUnmount, bgComponent, reHTMLContent } from './componentUtils'
 
 // Component is a base class to make writing DOM components easier.

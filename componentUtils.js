@@ -1,6 +1,4 @@
-import clonedeep from 'lodash.clonedeep'
-import { el, list, mount as redomMount, unmount as redomUnmount, setAttr, text } from 'redom';
-import { AssertError } from './errorHandling'
+import { el, mount as redomMount, unmount as redomUnmount, text } from 'redom';
 
 // redom does not export this function so repeat it
 export function getEl (parent) {
@@ -19,7 +17,7 @@ export const reTagIDClasses   = /^((?<name>[_a-zA-Z0-9]*):)?(?<tagName>[-_a-zA-Z
 // reContentIDClasses makes content the default text and changes tagName to require a leading $
 // the re group names are the parameter names. This re must match '' (all groups are optional) 
 // [name:][$<tagName>][#<idName>][.className1[.className2...]][ textContent]
-export const reContentIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?([$](?<tagName>[-_a-zA-Z0-9]*))?(#(?<idName>[-_a-zA-Z0-9]*))?(?<className>[.][-!_.a-zA-Z0-9]*)?[\s,]?((?<icon>icon-[-_a-zA-Z0-9]+)([\s,]|$))?(?<label>.*)?$/;
+export const reContentIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?([$](?<tagName>[-_a-zA-Z0-9]*))?(#(?<idName>[-_a-zA-Z0-9]*))?(?<className>[.][-!_.a-zA-Z0-9]*)?(\s+|,|$)?((?<icon>icon-[-_a-zA-Z0-9]+)(\s+|,|$))?(?<label>.*)?$/;
 
 export const bgComponent=Symbol.for('bgComponent');
 
@@ -455,8 +453,7 @@ export class ComponentParams {
 
 			case 'tagIDClasses':
 				var matched = reContentIDClasses.exec(value);
-				if (!matched)
-					throw new AssertError("invalid tagIDClasses string syntax. ", {name:name,value:value});
+				console.assert(!!matched, "invalid tagIDClasses string syntax. ", {name:name,value:value});
 
 				// the group names in reContentIDClasses correspond to the real attribute names so matched.group can be reduced like 
 				// any options object 
@@ -592,7 +589,7 @@ export function ComponentMount(parent, p1, p2, p3) {
 		// ChildContent can be null but not undefined. This is either a logic error in Form1/Form2 detection or the caller explicitly
 		// passed 'undefined' as the content
 		case 'undefined':
-			throw AssertError("ChildContent can be null but not undefined.");
+			console.assert(false, "ChildContent can be null but not undefined.");
 
 		case 'string':
 			var element;
@@ -624,7 +621,7 @@ export function ComponentMount(parent, p1, p2, p3) {
 			break;
 
 		default:
-			throw new AssertError("Invalid arguments. ChildContent needs to be an object, array or string", {childContent:childContent,p1:p1,p2:p2,p3:p3, type:typeof childContent});
+			console.assert(false, "Invalid arguments. ChildContent needs to be an object, array or string", {childContent:childContent,p1:p1,p2:p2,p3:p3, type:typeof childContent});
 	}
 
 	// do the work

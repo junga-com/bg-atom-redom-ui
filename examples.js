@@ -1,10 +1,16 @@
-import { CompositeDisposable } from 'atom';
 import { Component } from './component'
 import { Panel, PanelHeader, PanelBody } from './panels'
-import { TextEditor, Dragger } from './miscellaneous'
+import { TextEditor, Dragger, Disposables } from './miscellaneous'
 
 let exampleData = {
 	example1: `
+		 new Panel("example1:.BGExample", [
+		 	new PanelHeader(" Example 1"),
+		 	"Woo hoo!!!"
+		 ]);
+	`,
+
+	example2: `
 		 new Panel({
 		 	name: "example1",
 		 	class: "BGExample",
@@ -130,7 +136,7 @@ export class BGAtomRedomExamples extends Panel {
 
 	constructor(...options) {
 		super(...options);
-		this.disposables = new CompositeDisposable();
+		this.disposables = new Disposables();
 		this.uri = 'bg://uiExamples';
 
 		for (const name in exampleData) {

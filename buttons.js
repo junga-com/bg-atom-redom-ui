@@ -1,5 +1,4 @@
-import { el, list, mount as redomMount, setAttr, text } from 'redom';
-import { AssertError } from './errorHandling'
+import { el, mount as redomMount } from 'redom';
 import { Component } from './component'
 import { ComponentParams } from './componentUtils'
 
@@ -156,9 +155,9 @@ export class CommandButton extends Button {
 
 
 
-// OneShotButton stays pressed when its activated and wont fire its onActivatedCB again until it is reset. Calling reset makes it
-// appear unpressed and it can then be pressed (activated) again. It is used by RadioButtonGroup which resets all the other buttons
-// when any button in the group is pressed.
+// OneShotButton stays pressed when its activated and wont fire its onActivatedCB again when clicked on until it is reset. Calling
+// reset makes it appear unpressed and it can then be pressed (activated) again. It is used by RadioButtonGroup which resets all
+// the other buttons when any button in the group is pressed.
 // Params:
 //     [name:][icon-<icnName> ][label] : The first parameter is a string that contains 1 to 3 attributes of the button.
 //           name : variable-like name used for the button. Useful to identify which button was activated when multiple buttons share

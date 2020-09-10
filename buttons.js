@@ -1,6 +1,7 @@
 import { el, mount as redomMount } from 'redom';
 import { Component } from './component'
 import { ComponentParams } from './componentUtils'
+import { Disposables } from './Disposables'
 
 
 // standard Button.
@@ -30,6 +31,8 @@ export class Button {
 			paramNames: 'focusOnMouseClick'
 		}, tagIDClasses, onActivatedCB, namedParams, ...p);
 
+		this.disposables = new Disposables();
+
 		this.name          = componentParams.name;
 		this.iconName      = componentParams.optParams.icon;
 		this.onActivatedCB = componentParams.getUnnamedCB('force');
@@ -49,7 +52,7 @@ export class Button {
 		// TODO: this should use the same algorithm as Component::mount
 		// if (optChildren)
 		// 	for (var i=0; i<optChildren.length; i++) {
-		// 		mount(this.el, optChildren[i]);	
+		// 		mount(this.el, optChildren[i]);
 		// 	}
 	}
 
@@ -72,8 +75,8 @@ export class Button {
 	onActivated(e) {}
 }
 
-// ToggleButton is two-state. When activated it toggles between pressed(true) and unpressed(false). The callback is passed the 
-// pressed state. The presence of the .pressed class determines the current state and styling 
+// ToggleButton is two-state. When activated it toggles between pressed(true) and unpressed(false). The callback is passed the
+// pressed state. The presence of the .pressed class determines the current state and styling
 // Params:
 //     [name:][icon-<icnName> ][label] : The first parameter is a string that contains 1 to 3 attributes of the button.
 //           name : variable-like name used for the button. Useful to identify which button was activated when multiple buttons share
@@ -81,7 +84,7 @@ export class Button {
 //           icon-<icnName> : a name of one of the icons in the Atom Style Guide (ctrl-shift-G). The icon will appear to left of label
 //           label: The text displayed in the button.
 //     onActivatedCB(isPressed, this) : a callback function invoked when the button is activated by click or keyboard. The current
-//                 pressed state and this object are passed as parameters 
+//                 pressed state and this object are passed as parameters
 //     options  : an object with various optional keys
 // Options:
 //     pressed  : if true, the button will start in the pressed state
@@ -111,7 +114,7 @@ export class ToggleButton extends Button {
 }
 
 
-// CommandButton is a Button that invokes a Atom command when clicked. It is constructed from the command name and handles the 
+// CommandButton is a Button that invokes a Atom command when clicked. It is constructed from the command name and handles the
 // onActivatedCB itself. It gleans default values to create a tool tip
 // properties
 // Params:
@@ -165,7 +168,7 @@ export class CommandButton extends Button {
 //           icon-<icnName> : a name of one of the icons in the Atom Style Guide (ctrl-shift-G). The icon will appear to left of label
 //           label: The text displayed in the button.
 //     onActivatedCB(isPressed, this) : a callback function invoked when the button is activated by click or keyboard. The current
-//                 pressed state and this object are passed as parameters 
+//                 pressed state and this object are passed as parameters
 //     options  : an object with various optional keys
 // Options:
 //     pressed  : if true, the button will start in the pressed state
@@ -196,7 +199,7 @@ export class OneShotButton extends ToggleButton {
 // Params:
 //     onChangeCB(buttonName) : a callback that gets called whenever the selection changes.
 //     selectedButtonName     : the button that is pressed initially
-//     buttonsData   : an array describing the buttons. The button data is the information needed for the Button constructor. 
+//     buttonsData   : an array describing the buttons. The button data is the information needed for the Button constructor.
 //              string button data: the [name:][icon-<icnName> ][label] accepted by the Button class.
 //              object button data: the options object accepted by the Button class additionally with a 'label' property containing
 //                                  the [name:][icon-<icnName> ][label] parameter.

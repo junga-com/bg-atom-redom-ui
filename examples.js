@@ -1,6 +1,7 @@
 import { Component } from './component'
 import { Panel, PanelHeader, PanelBody } from './panels'
-import { TextEditor, Dragger, Disposables } from './miscellaneous'
+import { TextEditor, Dragger } from './miscellaneous'
+import { Disposables } from './Disposables'
 
 let exampleData = {
 	example1: `
@@ -32,7 +33,7 @@ let exampleData = {
 		 				"Some content..."
 		 			]
 		 		}),
-		 		
+
 		 	]
 		 });
 	`,
@@ -96,7 +97,7 @@ let bableMap = {
 
 export class BGAtomRedomExamples extends Panel {
 	// this is the static Entrypoint to enabled adding this view to Atom packages easily. This is in a node package so we cant
-	// activate it automatically. A package can call BGAtomRedomExamples.Singleton('activate'), .'deactivate' and 'toggle' 
+	// activate it automatically. A package can call BGAtomRedomExamples.Singleton('activate'), .'deactivate' and 'toggle'
 	static Singleton(cmd) {
 		if (!window.atom) return;
 		switch (cmd) {

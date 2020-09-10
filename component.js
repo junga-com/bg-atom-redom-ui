@@ -1,5 +1,6 @@
 import { el, unmount as redomUnmount, setAttr, text } from 'redom';
 import { ComponentParams, ComponentMount, ComponentUnmount, bgComponent, reHTMLContent } from './componentUtils'
+import { Disposables } from './Disposables'
 
 // Component is a base class to make writing DOM components easier.
 // The spirit of this Component class is that writing interactive UI applications in Javascript, be they delivered by web or be they
@@ -36,10 +37,10 @@ import { ComponentParams, ComponentMount, ComponentUnmount, bgComponent, reHTMLC
 //     })
 //
 // Note a few things...
-//     * an arbitrary number of string, object, or function construction parameters can be specified in any order. 
+//     * an arbitrary number of string, object, or function construction parameters can be specified in any order.
 //     * information in parameters on the left, override the same information provided by parameters on their right.
 //     * a string parameter will always be parsed as a tagIDClasses syntax
-//       * the string prameter is the text label by default but can be adorn with the component name, tag, id, can classes. 
+//       * the string prameter is the text label by default but can be adorn with the component name, tag, id, can classes.
 //     * parameters that are Component instances, DOM Nodes, and Arrays will be recognized as child content to add.
 //     * Any other object parameter will be a container for any number of named parameters.
 //
@@ -49,7 +50,7 @@ import { ComponentParams, ComponentMount, ComponentUnmount, bgComponent, reHTMLC
 // for specifying name, tagName, idName, class, and (text) content in one string so any of those can be specified without using
 // the object literal syntax. See examples section. See ComponentParams for more details.
 //
-//    name:string    : a variable name used for this component. Typically this makes sense relative to its parent. 
+//    name:string    : a variable name used for this component. Typically this makes sense relative to its parent.
 //                     * Will be added to classList so its a shortcut for adding this one, special className
 //                     * If this component is mounted to a parent component, it will be available as <parent>.<name>
 //    tagName:string : <tagName> The name of the dom/html element type. <div> is the default.
@@ -64,20 +65,22 @@ import { ComponentParams, ComponentMount, ComponentUnmount, bgComponent, reHTMLC
 //                   content starts with a valid html tag (<something... >), textContent will be treated as HTML, otherwise it will
 //                   be plain text. If you want valid HTML to be treated as plain text, prefix it with an extra space.
 //                   If you are only providing textContent in the string that comes from a variable, it is safest to prefix it with
-//                   a space or comma in case the text happens to contain a [:$#.] character before the first space or comma. 
+//                   a space or comma in case the text happens to contain a [:$#.] character before the first space or comma.
 //    content:<multiple> : innerHTML specified in multiple ways -- text, html, DOM node, Component instance, or an array of multiple of those
 //    paramNames:stringSet: (specified by derived classes) space separated list of additional parameter names that this type of component supports.
-//    unnamedCB:function: a function that will be registered in the component's default callback event. 
+//    unnamedCB:function: a function that will be registered in the component's default callback event.
 //    <Additional Component properties>  :<any> : any name documented by any class in the component hierarchy being created can specified
 //    <Style properties>:string: any style name can be specified. This library maintains a map of known style names. If you find that
-//                   it does not recognize the name you specify as a style, you can force it by moving it into a {styl: ..} sub-object. 
-//    <DOM properties>:string: any name that is not otherwise recognize will be set in the DOM Node that is created. 
+//                   it does not recognize the name you specify as a style, you can force it by moving it into a {styl: ..} sub-object.
+//    <DOM properties>:string: any name that is not otherwise recognize will be set in the DOM Node that is created.
 // See Also:
 //    ComponentParams
 // Usage:
 //    new Component(<tagIDClasses> [,<content>] [,options] [,<callback>])
 export class Component {
 	constructor(tagIDClasses, options, ...moreOptionsOrParamNames) {
+		this.disposables = new Disposables();
+
 		this[bgComponent] = true;
 		this.componentParams = new ComponentParams(tagIDClasses, options, ...moreOptionsOrParamNames);
 		this.mounted          = [];
@@ -105,13 +108,13 @@ export class Component {
 	// Several types of children content are supported.
 	//     component : object(w/.el)       : any JS object with a 'el' property (el should be a DOM Node)
 	//     DOMNode   : object(w/.nodeType) : DOMNodes are identified by having a 'nodeType' property
-	//     plain text: string(s[0]!="<")   : Plain text will be appended as a text node. 
+	//     plain text: string(s[0]!="<")   : Plain text will be appended as a text node.
 	//     html text : string(s[0]=="<")   : HTML test will be converted to a component whose outerHTML is the provided text
-	//     multiple Children : array       : multiple children can be given in an array. Each array element can be any of the 
+	//     multiple Children : array       : multiple children can be given in an array. Each array element can be any of the
 	//                                       supported types including a nested array. Array nesting will not affect how the child
 	//                                       hiearchy is built -- all children will be traversed and added to this component directly.
 	//                                       The one difference is if name is specified and content is an array, the <name> property
-	//                                       created in the parent will be an array with elements poiting to the children. Any 
+	//                                       created in the parent will be an array with elements poiting to the children. Any
 	//                                       children in the array that have a name property will have a reference added as that
 	//                                       name reardless of whether the array itself is named. Tyically, arrays will not be named
 	//                                       and there is no difference between adding the children individually or within an array.

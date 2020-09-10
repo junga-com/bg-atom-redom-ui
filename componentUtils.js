@@ -475,7 +475,7 @@ export class ComponentParams {
 
 		// these are containers for these types of attributes so iterate and reduce each key in them
 		if (/(optParams|styles|style|props)/.test(name)) {
-			for (key in value)
+			for (const key in value)
 				this.reduceClassifiedAttr(objContainer, attrClassifier,  key, value[key]);
 		} else {
 			// since props is the default when the name is not recognized, and we think that DOM properties can not be objects

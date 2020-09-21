@@ -1,4 +1,5 @@
 //export * from 'redom'
+export * from './DependentsGragh'
 export * from './component'
 export * from './componentUtils'
 export * from './buttons'

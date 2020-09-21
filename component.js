@@ -158,10 +158,12 @@ export class Component {
 	}
 
 	destroy() {
+		this.disposables.dispose();
+		deps.objectDestroyed(this);
 		var child;
 		while (child = this.mounted.pop()) {
 			this.unmount(child);
-			child.destroy();
+			typeof child.destroy == 'function' && child.destroy();
 		}
 		while (child = this.mountedUnamed.pop()) {
 			redomUnmount(this, child);

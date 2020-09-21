@@ -56,6 +56,11 @@ export class Button {
 		// 	}
 	}
 
+	destroy() {
+		this.disposables.dispose();
+		deps.objectDestroyed(this);
+	}
+
 	onClick(e) {
 		this.lastFocused && this.lastFocused.focus(); this.lastFocused=null;
 		this.onActivatedCB && this.onActivatedCB(this, e);
@@ -153,6 +158,7 @@ export class CommandButton extends Button {
 	}
 	destroy() {
 		this.toolTipDispose.dispose();
+		super.destroy();
 	}
 }
 

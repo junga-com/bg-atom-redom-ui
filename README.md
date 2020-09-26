@@ -1,4 +1,4 @@
-# bg-atom-redom-ui
+# bg-dom
 
 # 2020-09 Status
 This package is being evolved into a more general JS component UI framework and may not be limited to use in Atom. The only dependency
@@ -8,8 +8,8 @@ instead of the other way around.
 
 This is an NPM package that provides a Components library that is compliant with the Atom style guide and built on top of something
 that was originally inspired by the REDOM library. The dependency on REDOM is also all but gone. I am now calling the components
-BGComponents which are typically inherited from bg-atom-redom-ui::Component but do not have to be. Any REDOM style component or
-plain DOM object can participate in the patterns. 
+BGComponents which are typically inherited from bg-dom::Component but do not have to be. Any REDOM style component or
+plain DOM object can participate in the patterns.
 
 The beauty of REDOM is that it is lightweight and requires very little from a JS object to be able to treat it like a REDOM component.
 The main requirement is that it has an 'el' property that references its DOM object. This library continues that but also provides

@@ -233,7 +233,7 @@ export class BGAtomRedomExamples extends Panel {
 		this.selectExample((((this.selectedIndex-1) % this.mounted.length)+this.mounted.length) % this.mounted.length);
 	}
 
-	getTitle()            {return 'bg-atom-redom-ui Examples';}
+	getTitle()            {return 'bg-dom Examples';}
 	getElement()          {return this.el;}
 	getDefaultLocation()  {return 'bottom';}
 	getAllowedLocations() {return ['left','right','center','bottom'];}

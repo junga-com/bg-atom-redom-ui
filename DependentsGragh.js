@@ -7,7 +7,7 @@ const GetMode = {NoCreate:true, CreateIfNeeded:false};
 //     this.deps   : is the forward relationship which is a map because it has state embodied in the PropagationFn callback
 //                   the value of the Map entries is a function object that has the signature (obj, ...p) where <obj> is the
 //     this.bkLinks is the reverse relationship which allows us to maintain the graph and no what depends on what
-class ObjectNode {
+export class ObjectNode {
 	constructor(obj) {
 		this.obj = obj;
 		this.channels = new Map();
@@ -33,11 +33,20 @@ class ObjectNode {
 		return this.channels.size == 0 && this.bkLinks.size == 0;
 	}
 	getCNode(channel, getMode=GetMode.CreateIfNeeded) {
-		var cnode = this.channels.get(channel);
+		var cnode = this.channels.get(channel.toString());
 		if (!cnode) {
 			if (getMode==GetMode.CreateIfNeeded) {
-				cnode = new ChannelNode(this.obj,channel);
-				this.channels.set(channel, cnode);
+				const obj1 = this.obj;
+				const classCandidates = deps.cnodeClasses.filter((C)=>{return C.matchSource(obj1,channel)});
+				switch (classCandidates.length) {
+					case 0: cnode = new ChannelNode(obj1,channel);        break;
+					case 1: cnode = new classCandidates[0](obj1,channel); break;
+					default:
+						console.warn("DependentsGragh:ObjectNode:getCNode: multiple registered ChannelNodeClasses match {obj1,channel}",{obj1,channel})
+						cnode = new classCandidates[0](obj1,channel);
+				}
+
+				this.channels.set(channel.toString(), cnode);
 			}
 		} else
 			cnode._isNew = this.isEmpty();
@@ -45,15 +54,15 @@ class ObjectNode {
 	}
 	releaseCNode(cnode) {
 		if (cnode && cnode.isEmpty()) {
+			this.channels.delete(cnode.channel.toString());
 			cnode.destroy();
-			this.channels.delete(cnode.channel);
 		}
 	}
 }
 
-class ChannelNode {
-	constructor(obj, channel) {
-		this.obj = obj;
+export class ChannelNode {
+	constructor(obj1, channel) {
+		this.obj1 = obj1;
 		this.channel = channel;
 		this.targets = new Map();
 		this.defaultTargetMethodName = undefined;
@@ -77,7 +86,7 @@ class ChannelNode {
 		}
 		this.targets.clear();
 
-		this.obj=undefined;
+		this.obj1=undefined;
 		this.channel = undefined;
 	}
 	isNew() {return this._isNew}
@@ -135,12 +144,17 @@ class ChannelNode {
 export class DependentsGragh {
 	constructor() {
 		this.nodes = new Map();
+		this.cnodeClasses = [];
 		this.fireCount = 0;
 		this.fAll = Symbol('fAll');
 	}
 	destroy() {
 		this.nodes.forEach((node)=>{node.destroy()})
 		this.nodes.clear()
+	}
+
+	registerCNodeClass(cnodeClass) {
+		this.cnodeClasses.push(cnodeClass);
 	}
 
 	getONode(obj, getMode=GetMode.CreateIfNeeded) {
@@ -162,8 +176,8 @@ export class DependentsGragh {
 		}
 	}
 
-	getCNode(obj, channel, getMode=GetMode.CreateIfNeeded) {
-		const onode = this.getONode(obj, getMode);
+	getCNode(obj1, channel, getMode=GetMode.CreateIfNeeded) {
+		const onode = this.getONode(obj1, getMode);
 		return (!onode)
 			? undefined
 			: onode.getCNode(channel, getMode);
@@ -180,8 +194,12 @@ export class DependentsGragh {
 
 	// record that obj2 depends on obj1
 	// Params:
-	//    <obj1> : when this object fires a change event, obj2 will be notified
-	//    <obj2> : this object is depedent on the state of obj1
+	//    <$obj1> : {obj1,channel} or <obj1>. this defines the source of the dependency relationship.
+	//          <obj1>    : this is the object whose state change will initiate action for this relationship.
+	//          <channel> : default==deps.fAll(Symbol). the optional channel represents a type of change in <obj1>. A complex object
+	//                      may have different parts that can change independently from each other. Specifying a channel makes the
+	//                      propagation fire only when the relavent channel fires and avoided uneccessary propagation.
+	//    <obj2>  : this object is depedent on the state of obj1 and will receive a propagation call when <obj1> fires
 	//    <propagationFnParams> : this is the callback that handles the the proagation of change from obj1 to obj2
 	//               (null)     : if none is provided, the default behavior is defined in the defaultPropagationFn method of this class.
 	//               (function) : if a function is provided, it will be called like callback(obj2, ...p) where <obj> is the target
@@ -266,7 +284,7 @@ export class DependentsGragh {
 		if (changingCnodes.length > 0) {
 			console.warn('Change propagation is supressed for these {obj,channels}...');
 			for (const cnode of changingCnodes)
-				console.warn('   :'+{refCnt:cnode.contextCount,obj1:cnode.obj,channel:cnode.channel});
+				console.warn('   :'+{refCnt:cnode.contextCount,obj1:cnode.obj1,channel:cnode.channel});
 		}
 	}
 
@@ -282,7 +300,7 @@ export class DependentsGragh {
 		if (changingCnodes.length > 0) {
 			console.warn('Change propagation is supressed for these {obj,channels}...');
 			for (const cnode of changingCnodes)
-				console.warn('   :'+{refCnt:cnode.contextCount,obj1:cnode.obj,channel:cnode.channel});
+				console.warn('   :'+{refCnt:cnode.contextCount,obj1:cnode.obj1,channel:cnode.channel});
 		} else {
 			console.log('no changes currently in progress');
 		}
@@ -393,7 +411,7 @@ export class DependentsGragh {
 	//               the timeout will be what ever the other properties result in.
 	//    .onDestroy : (function) this function will be invoked when the relationship is removed.
 	createPropagationFn(cnode1, onode2, params) {
-		var fn = (...p)=>{this.defaultPropagationFn({obj1:cnode1.obj,obj2:onode2.obj,defaultTargetMethodName:cnode1.defaultTargetMethodName}, ...p)};
+		var fn = (...p)=>{this.defaultPropagationFn({obj1:cnode1.obj1,obj2:onode2.obj,defaultTargetMethodName:cnode1.defaultTargetMethodName}, ...p)};
 		if (params) switch (typeof params) {
 			case 'function' : return params;
 			case 'object'   :

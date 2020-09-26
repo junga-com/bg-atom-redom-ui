@@ -1,7 +1,7 @@
 {
-  "name": "bg-atom-redom-ui",
+  "name": "bg-dom",
   "main": "esmToCjsBridge.js",
-  "module": "./bg-atom-redom-ui.js",
+  "module": "./bg-dom.js",
   "version": "2.2.0",
   "description": "Atom plugin UI Component library using REDOM and compliant with the Atom style guide",
   "keywords": [
@@ -14,14 +14,14 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/junga-com/bg-atom-redom-ui.git"
+    "url": "git+https://github.com/junga-com/bg-dom.git"
   },
   "author": "Robert E. Griffith <npmjs@junga.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/junga-com/bg-atom-redom-ui/issues"
+    "url": "https://github.com/junga-com/bg-dom/issues"
   },
-  "homepage": "https://github.com/junga-com/bg-atom-redom-ui#readme",
+  "homepage": "https://github.com/junga-com/bg-dom#readme",
   "dependencies": {
     "redom": "^3.24.2"
   }

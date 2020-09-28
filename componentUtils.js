@@ -10,12 +10,12 @@ export const reEmpty        = /^\s*$/;
 export const reHTMLContent  = /^\s*<[^>]+>/;
 export const reVarName      = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
-// reTagIDClasses makes tagName the default text 
+// reTagIDClasses makes tagName the default text
 // [name:][<tagName>][#<idName>][.className1[.className2...]][ textContent]
 export const reTagIDClasses   = /^((?<name>[_a-zA-Z0-9]*):)?(?<tagName>[-_a-zA-Z0-9]*)?(#(?<idName>[-_a-zA-Z0-9]*))?(?<className>[.][-!_.a-zA-Z0-9]*)?([\s,]((?<icon>icon-[-_a-zA-Z0-9]+)([\s,]|$))?(?<label>.*))?$/;
 
 // reContentIDClasses makes content the default text and changes tagName to require a leading $
-// the re group names are the parameter names. This re must match '' (all groups are optional) 
+// the re group names are the parameter names. This re must match '' (all groups are optional)
 // [name:][$<tagName>][#<idName>][.className1[.className2...]][ textContent]
 export const reContentIDClasses = /^((?<name>[_a-zA-Z0-9]*):)?([$](?<tagName>[-_a-zA-Z0-9]*))?(#(?<idName>[-_a-zA-Z0-9]*))?(?<className>[.][-!_.a-zA-Z0-9]*)?(\s+|,|$)?((?<icon>icon-[-_a-zA-Z0-9]+)(\s+|,|$))?(?<label>.*)?$/;
 
@@ -237,7 +237,7 @@ const knownStyleProperties = {
 //
 //    Information earlier in the parameter list (more to the left) will supercede information later in the list (more to the right).
 //    with the same name. A component class can use this to decide whether the information it provides will be a default value that
-//    the level above it can override or whether it is a mandatory value that can not be overridden. 
+//    the level above it can override or whether it is a mandatory value that can not be overridden.
 //
 // Passing Information as Named vs Unnamed (positional) :
 //    No parameter passed to the ComponentParams constructor is identified by its position so there are really no positional parameters.
@@ -259,7 +259,7 @@ const knownStyleProperties = {
 //    syntax for creating components.
 //
 // Named (Logical) Parameters :
-// These are the named 'parameters' that can be explicitly specified in a named parameter object that apprears in the 
+// These are the named 'parameters' that can be explicitly specified in a named parameter object that apprears in the
 // 'positional parameter' list. Note that the names that are not in <> are the literal keys that will be recognized. Those that are
 // in <> like <knownStyles> refer to a whole set of names that will be recognized -- in this case any of the CSS style attributes.
 //    tagName       :string     : <tagName> The name of the dom/html element type
@@ -273,7 +273,7 @@ const knownStyleProperties = {
 //    paramNames    :stringSet  : space separated list of optional parameter names that can be specified in the options object
 //    props         :object     : Attributes / Properties to be set in the created DOM node
 //    styles        :object     : css styles to be set in the created DOM node
-//    unnamedCB     :function   : a function that will be registered in the component's default callback event. 
+//    unnamedCB     :function   : a function that will be registered in the component's default callback event.
 //    <paramNames>  :<any>      : in the options object, any name listed in 'paramNames' will be interpreted as if they were specified within 'optParams'
 //    <knownStyles> :string     : in the options object, any name listed in knownStyleProperties will be interpreted as if it were specified inside 'styles'
 //    <unknownNames>:string     : in the options object, any name that does not match any known name will be interpreted as if it were specified inside 'props'
@@ -282,7 +282,7 @@ const knownStyleProperties = {
 //    An important way to make the syntax to build components more compact is the support to specify any (name,value) pair at the
 //    top level of the named parameter object even if they really belong inside one of the optParam, styles, or props sub-objects.
 //    The ComponentParams class will recognize what they are and move them into the correct sub-object so that component authors can
-//    always access them in their proper place even if they were not specified there explicitly. 
+//    always access them in their proper place even if they were not specified there explicitly.
 //
 //    For each name which is not one of the fixed, known names above that appears at the top level, a map lookup will be required
 //    to identify what it is. I consider this an acceptable tradeoff, but if you do not, explicitly specifying those names in their
@@ -306,7 +306,7 @@ const knownStyleProperties = {
 //          putting them inside a named parameter object.
 //
 //    <content>  : Arrays and also Objects with either an 'el' or 'nodeType' property are interpretted as childContent that will
-//          be added to the new component instance. 
+//          be added to the new component instance.
 //
 //    <options>  : any object param that does not match the content conditions are interpretted as a named parameter object. The
 //          keys of these objects can contain any of the names listed in the Named Parameter Section.
@@ -336,7 +336,7 @@ const knownStyleProperties = {
 //           in the end, the array will be reversed so that the effect is that content provided by dervied classes will by default
 //           appear after content provided in a base class.
 //     unnamedCB : multivalued : combined into an array
-//     optParams,props,styles : these are containers of named data and each key is treated separately according to its name.  
+//     optParams,props,styles : these are containers of named data and each key is treated separately according to its name.
 //
 export class ComponentParams {
 	// params can be any number of the following in any order
@@ -374,7 +374,7 @@ export class ComponentParams {
 				case 'object':
 					// detect any content type object
 					if (Array.isArray(params[i]) || ('nodeType' in params[i]) || ('el' in params[i]))
-						// it would make sense to spread the array into the the content array except we are appending in the wrong 
+						// it would make sense to spread the array into the the content array except we are appending in the wrong
 						// direction. Its more efficient to append in the wrong direction and then in the end, reverse the array.
 						this.reduceAttribute('content', params[i]);
 					else {
@@ -398,7 +398,7 @@ export class ComponentParams {
 			}
 		}
 
-		// the content array may have aritrary nested arrays that could be flattened, but I think its not necessary because 
+		// the content array may have aritrary nested arrays that could be flattened, but I think its not necessary because
 		// Component.mount handles it. Nesting arrays do not introduse a correspnding DOM Node layer -- mount will flatten them.
 		this.content.reverse();
 
@@ -406,7 +406,7 @@ export class ComponentParams {
 		this.style = this.styles;
 	}
 
-	// return a classifier string which determines how to reduce the attribute 
+	// return a classifier string which determines how to reduce the attribute
 	classifyAttribute(name) {
 		if (/^(content|paramNames|tagIDClasses|unnamedCB)$/.test(name)) return name;
 		else if (/(className|class|classes|classNames)/.test(name))     return 'className';
@@ -425,7 +425,7 @@ export class ComponentParams {
 	// this function is used to process the contents of an options object for which the value has a name (unlike positional params)
 	// We will classify the attribute based on its name and then reduced them differently based on their classification
 	reduceAttribute(name, value) {
-		// skip if there is no value. 
+		// skip if there is no value.
 		if (value == null)
 			return;
 
@@ -440,7 +440,7 @@ export class ComponentParams {
 				return;
 
 			case 'className':
-				// classes are not first come first server except that '!' prevents additional classes from base classes from being added. 
+				// classes are not first come first server except that '!' prevents additional classes from base classes from being added.
 				if (Array.isArray(value)) value = value.join(' ');
 				if (/[!]/.test(value))
 					this.lockedParams[name] = true;
@@ -455,8 +455,8 @@ export class ComponentParams {
 				var matched = reContentIDClasses.exec(value);
 				console.assert(!!matched, "invalid tagIDClasses string syntax. ", {name:name,value:value});
 
-				// the group names in reContentIDClasses correspond to the real attribute names so matched.group can be reduced like 
-				// any options object 
+				// the group names in reContentIDClasses correspond to the real attribute names so matched.group can be reduced like
+				// any options object
 				for (var name in matched.groups)
 					this.reduceAttribute(name, matched.groups[name]);
 				return;
@@ -498,7 +498,7 @@ export class ComponentParams {
 		this.lockedParams[classification+name] = true;
 	}
 
-	// we can probably make the dom el more effieciently than redom's el now but we can optimize that later. 
+	// we can probably make the dom el more effieciently than redom's el now but we can optimize that later.
 	makeREDOMTagString() {
 		var redomTagStr = this.tagName
 		if (this.idName)
@@ -534,19 +534,19 @@ export class ComponentParams {
 // Several types of children content are supported.
 //     component : object(w/.el)       : any JS object with a 'el' property (el should be a DOM Node)
 //     DOMNode   : object(w/.nodeType) : DOMNodes are identified by having a 'nodeType' property
-//     plain text: string(s[0]!="<")   : Plain text will be appended as a text node. 
+//     plain text: string(s[0]!="<")   : Plain text will be appended as a text node.
 //     html text : string(s[0]=="<")   : HTML test will be converted to a component whose outerHTML is the provided text
-//     multiple Children : array       : multiple children can be given in an array. Each array element can be any of the 
+//     multiple Children : array       : multiple children can be given in an array. Each array element can be any of the
 //                                       supported types including a nested array. Array nesting will not affect how the child
 //                                       hiearchy is built -- all children will be traversed and added to this component directly.
 //                                       The one difference is if name is specified and content is an array, the <name> property
-//                                       created in the parent will be an array with elements poiting to the children. Any 
+//                                       created in the parent will be an array with elements poiting to the children. Any
 //                                       children in the array that have a name property will have a reference added as that
 //                                       name reardless of whether the array itself is named. Typically, arrays will not be named
 //                                       and there is no difference between adding the children individually or within an array.
 // ComponentUnmount:
 //     To avoid memory leaks, ComponentMount and ComponentUnmount should be called in matching pairs. If you call ComponentMount
-//     then you should call ComponentUnmount to undo the cyclic references when the dom element is no longer needed. 
+//     then you should call ComponentUnmount to undo the cyclic references when the dom element is no longer needed.
 //     The exception to this is if the child is unamed. In that case no extra references are formed and the discarding the parent
 //     DOM node is sufficient.
 //
@@ -658,7 +658,7 @@ export function ComponentMount(parent, p1, p2, p3) {
 // Tear down the parent<->child relationship that ComponentMount created and remove the DOM child relationship also.
 export function ComponentUnmount(parent, name) {
 	var child = parent[name];
-	assert(!!child, "unmounting a child with ComponentUnmount that does not exist in the parent")
+	console.assert(!!child, "unmounting a child with ComponentUnmount that does not exist in the parent", {parent, name})
 	redomUnmount(parent, parent[name]);
 	var i = parent.mounted.indexOf(name);
 	if (i != -1) parent.mounted.splice(i,1);

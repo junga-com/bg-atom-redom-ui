@@ -1,22 +1,35 @@
 # bg-dom
 
 # 2020-09 Status
-This package is being evolved into a more general JS component UI framework and may not be limited to use in Atom. The only dependency
-on Atom at this point is that it uses the Atom CSS classnames and the TextEditor editor component uses custom DOM objects provided by Atom.
-As things that really are Atom specific are found, they will moved into the bg-atom-utils package which now depends on this package
-instead of the other way around.
 
-This is an NPM package that provides a Components library that is compliant with the Atom style guide and built on top of something
-that was originally inspired by the REDOM library. The dependency on REDOM is also all but gone. I am now calling the components
-BGComponents which are typically inherited from bg-dom::Component but do not have to be. Any REDOM style component or
-plain DOM object can participate in the patterns.
+This package was just renamed from bg-atom-redom-ui to bg-dom.  It started as UI code specific to using REDOM in the Atom editor environment but then evolved into something similar and compatible to REDOM but independent and of general use, not just for use in Atom.
 
-The beauty of REDOM is that it is lightweight and requires very little from a JS object to be able to treat it like a REDOM component.
-The main requirement is that it has an 'el' property that references its DOM object. This library continues that but also provides
-enhanced ways to create components by composing knowledge implemented in different places at different points in the software lifecycle.
+Since this npm is not dependent on any of my other libraries, I am treating it as the root JS library of my projects. This means that I am putting in some non UI stuff.  I will periodically examine whats in it and decide if some part of it should be broken out into another npm so that it and the DOM components could be used independently in other projects.
+
+# Summary
+
+This is an NPM package that provides a Components library that is compliant with the Atom style guide and built on top of something that was originally inspired by the REDOM library. I am now calling the components BGComponents which are typically implemented as JS classes inherited from bg-dom::Component but they do not have to be. Any REDOM style component or plain DOM object can participate in the patterns anywhere that a BGComponent is expected.
+
+The beauty of REDOM is that it is lightweight and requires very little from a JS object to be able to treat it like a REDOM component. The main requirement is that it has an 'el' property that references its DOM object. This library continues that but also provides enhanced ways to create components by composing knowledge implemented in different places at different points in the software lifecycle.  You can see that in action in the component hierarchy included in this library.
+
+Note how Button is the root of an hierarchy of button types and Button does not extend Component. Both Button and Component use the same algorithm to process its constructor parameters. Button defines certain behavior that is controlled through optional parameters passed to its constructor. The classes that extend button, receives parameters from the thing constructing it, optionally adds to and overrides those parameters to create the arguments passed to the super constructor of the class that it extends.  Because a lot of behavior is controlled by the data passed through this chain of constructors, the code that creates an instanace of one of the Button classes get to define much of the behavior by composing the construction arguments.
+
+To facilitate this flow of construction data that can add and override the data at lower levels, a standardized parameter syntax is adopted. In a nutshell, earlier parameters in the argument list take priority over (aka overrides) later ones with the same 'key'. Each parameter can be an object containing any keys named for any of the attributes supported by the BGComponent being created or a string that complies with a syntax that allows specifying a handful of the important attributes. The children attribute includes the definition of the starting subtree below the BGComponent being constructed.
+
+Any class constructor in the hierarchy may define position significant parameters at the start of its constructor parameters but must support a variable number of those standard parameters after the positional arguments.
+
 
 This is a work in progress. The idea is to explore programming in JS/DOM in more of a programming style than markup but still have good css separation.
 
+
+
+# Miscellaneous Functions and Classes
+* function FirstParamOf   : helper for overloaded function parameters
+* function ArrangeParamsByType   : helper for overloaded function parameters
+* class PolyfillObjectMixin : supports the a pattern of extending JS code at runtime in a controlled way. Written for Atom environment but could be used for other environments.
+* DependentsGraph : supports a pattern for reactive programming. Its an alternative to the emitter pattern and extreme functional programming pattern with deep nested function definitions.
+* Disposables : an alternative to Atom Disposable and CompositeDisposable classes. One class to rule them all. Also supports destroy as an synonym to dispose, and accepts functions directly instead of an object with a dispose method and has a static method that iterates members of an object to call their disposed/destroyed method if present
+* class BGPromise : This is an alternative to Promise which supports a different pattern for creation. It can be constructed with no arguments and then its reject or resolve methods can be invoked explicitly. This allows a method/function to be written that supports both callback and promise patterns of use depending on how the caller wants to use it. When used with async/await, you can think of BGPromise a bit like a semaphore in traditional IPC patterns.
 
 # BGComponents...
 
@@ -24,7 +37,7 @@ A BGComponent is a JS-centric way of building and changing the DOM structure tha
 
 Components are recursive and composable.
 
-There are two independent hierarchies that work together to produce the final DOM -- the Component Type hierarchy and the Component Object hierarchy. Every OO system has these two natures.
+There are two independent hierarchies that work together to produce the final DOM -- the Component **Type/Class** hierarchy and the Component **Object/instance** hierarchy. Every OO system has these two natures.  The Type/Class hierarchy uses extends relations between classes to define the hierarchy and the Object/instance uses member variable relations to define the hierarchy.
 
 ## Component Object Hierarchy
 

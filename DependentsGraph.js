@@ -42,7 +42,7 @@ export class ObjectNode {
 					case 0: cnode = new ChannelNode(obj1,channel);        break;
 					case 1: cnode = new classCandidates[0](obj1,channel); break;
 					default:
-						console.warn("DependentsGragh:ObjectNode:getCNode: multiple registered ChannelNodeClasses match {obj1,channel}",{obj1,channel})
+						console.warn("DependentsGraph:ObjectNode:getCNode: multiple registered ChannelNodeClasses match {obj1,channel}",{obj1,channel})
 						cnode = new classCandidates[0](obj1,channel);
 				}
 
@@ -96,31 +96,33 @@ export class ChannelNode {
 }
 
 
-// DependentsGragh is the class of the global.deps object. It is an alternative to the emitter pattern. The idea is that reactive
+// DependentsGraph is the class of the global.deps object. It is an alternative to the emitter pattern. The idea is that reactive
 // programming has a core component that JS objects depend on other JS objects. This standardizes that functionality into a global
-// dependency graph that records what is dependent on what and vice-a-versa.  It treats functional programming of callbacks as an
+// dependency graph that records what is dependent on what and vice-a-versa.  It considers functional programming of callbacks as an
 // anti-pattern. Instead, behavior is returned to the objects themselves as the 'onDepChanged' method which handles the object
 // reacting to one of its dependencies changing state. The 'onDepChanged' method can be seen as the generic catch all for changes.
 // Several optimization patterns are supportted to preserve the state of knowlege through the firing of dependencies through the
 // graph. For is example. The first unoptimized version of an object might receive the onDepChanged msg and then query the state
 // of all its dependent objects to calulate what state it is in. This should always work functionally but may result in duplicated
-// work.  A more refined implementation may connect a particular dependency change event to a particular method which does only
+// work.  A more refined implementation may connect a particular dependency change channel to a particular method which does only
 // what it needs to respond to that specific event.
 //
-// Initially, the mechanisms for optimization is the PropagationFn that 'subclasses' the dependency relationship between two objects.
-// When a dependency is declared between obj1 and obj2, and optional PropagationFn can be specified. The default PropagationFn
-// is (...p)=>{obj2.onDepChanged && obj2.onDepChanged(...p)} which means that "if obj2 is able to respond to dep changes, fire its
-// generic onDepChanged method when obj1 changes.". By providing a PropagationFn, you can implement one or more of several types of optimizations.
-//     Reduce uneeded events : fire only when a relevant change happens. For example and obj2 might depend on the application's configuration
-//         but there are many configuration changes that will not effect it. The PropagationFn can only fire the event if one of the relavent
-//         settings changed.
-//     Avoid recalcuation fo what needs to be done : direct the event to a more specific change method. A complex object will support
-//         different types of state changes. By specifying a specific change method, the logic in the onDepChanged method that determines
-//         what has changed and what needs to be done can be avoided
-//     Debounce : sometimes on the final state of rapid changes need to be represented. When changes events come in over a certain
-//         rate, we can supress propagating the change until a sufficient pause is encounterd or a maximum time has elapsed.
+// Each dependent relation is a triplet {$obj1,obj2,propagationFn} where <$obj1> is the source <obj1> with an optional <channel> that
+// identifies a type of change to <obj1>, <obj2> is the dependent object that will receive change notifications, and propagationFn
+// is the action that will happen when the change is propagated.
+//
+// The default propagationFn calls <obj2>.onDepChanged(...). The <obj1> class can register integrations with DependentsGraph so that
+// a different <obj2> method will be called that is specific to it and its suportted channels. For example, the atom.config mechanism
+// makes it so <obj2>.onConfigChanged(...) will be called if it exists instead of onDepChanged.  When a relation is added, the propagationFn
+// can be overrided so a very action is taken. Typically, those propagationFn should be kept simple, just calling a specific <obj2>.<method>(),
+// possibly conditionally to filter out uneeded propagation, and possibly rearranging the arguments to comply with what <method>
+// expects.
+//
+// The propagationFn can also be modified with some builtin behaviors like debouncing. Instead of passing in a null, or a function
+// as the value of propagationFn, you can pass in an object that specifies attributes of the propagationFn like {debounce:500}
+//
 // Data Structure:
-//    The DependentsGragh is a multileveled data structure. It stores relationships between a source object (obj1) plus a channel
+//    The DependentsGraph is a multileveled data structure. It stores relationships between a source {object (obj1) plus a channel}
 //    and destination object (obj2). The relationship is stored as a pair of forward and reverse links so that the graph can be
 //    navigated in both directions. It is effiecient to add and remove relationships. Each relationship has a PropagationFn object.
 //    The PropagationFn is called to invoke propagation of changes through the graph and it also is used as an object to store
@@ -141,7 +143,23 @@ export class ChannelNode {
 //    Each object is represented by one ObjectNode which is used for all relationships -- both those where that object is the source
 //    and those where it is the destination. The ChannelNodes contained by an ObjectNode hold only the source object side of the
 //    relationships. The ObjectNodes contain the bkLink set which is the destination side of the relationship.
-export class DependentsGragh {
+// Params:
+// Theses are the common parameters and variable names used in various methods in this mechanism
+//    <obj1>   : the source object of the relationship  (<obj2> is dependent on <obj1>)
+//    <obj2>   : the destination object of the relationship (<obj2> is dependent on <obj1>)
+//    <channel>: a value that identifies a subset of changes to <obj1> that the relationship concerns
+//    <$obj1>  : <obj1> or {obj,channel}. Either <obj1> directly which implies that channel==deps.fAll, or an object that contains
+//               both <obj1> and <channel>
+//    <propagationFn> : The propagationFn can be specified in several ways.
+//             null   : the default calls <obj2>.onDepChanged or a more specific method identified by the ChannelNode object
+//                      representing the relation. e.g. if cnode.defaultTargetMethodName=='onConfigChanged' then <obj2.onConfigChanged
+//                      will be called.
+//             type 'function' : if <propagationFn> is a function, it will be used directly
+//             type 'object'   : if <propagationFn> is an object, a propagation function will be created using the values of any
+//                               recognized keys.
+//                               <debounce> : integer value to debounce the propagation. if 0, the default value will be used (500ms)
+//                               <propagationFn> : the function to invoke after applying any other specified attributes (like debounnce)
+export class DependentsGraph {
 	constructor() {
 		this.nodes = new Map();
 		this.cnodeClasses = [];
@@ -262,7 +280,7 @@ export class DependentsGragh {
 
 	logStatusForObj(obj) {
 		const onode = this.getONode(obj, GetMode.NoCreate);
-		console.log('DependentsGragh Status for <obj>=',{obj});
+		console.log('DependentsGraph Status for <obj>=',{obj});
 		console.log('<obj> receives change propagation from these objects');
 		if (onode && onode.bkLinks.size>0) {
 			for (const {obj1,channel,backMap} of onode.bkLinks)
@@ -338,7 +356,7 @@ export class DependentsGragh {
 	changeEnd($obj1, ...p) {
 		const [obj1, channel] = this._normalizeSourceObject($obj1);
 		const cnode1 = this.getCNode(obj1, channel);
-		console.assert((cnode1 && cnode1.contextCount>0), "unmatched DependentsGragh::changeEnd called. Better debugger will be coming. See comments on changeEnd");
+		console.assert((cnode1 && cnode1.contextCount>0), "unmatched DependentsGraph::changeEnd called. Better debugger will be coming. See comments on changeEnd");
 		if (cnode1.contextCount>1) {
 			cnode1.contextCount--;
 			if (p.length >0)
@@ -433,9 +451,9 @@ export class DependentsGragh {
 }
 
 
-DependentsGragh.instance = new DependentsGragh();
+DependentsGraph.instance = new DependentsGraph();
 if (typeof global.bg == 'undefined') global.bg = Object.create(null)
-global.bg.DependentsGragh = DependentsGragh;
+global.bg.DependentsGraph = DependentsGraph;
 
-// since DependentsGragh is a very common api, we create a global shortcut so that we can access it more tersely;
-global.deps = DependentsGragh.instance;
+// since DependentsGraph is a very common api, we create a global shortcut so that we can access it more tersely;
+global.deps = DependentsGraph.instance;
